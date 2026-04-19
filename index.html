@@ -111,6 +111,27 @@
       animation: floaty 8.2s ease-in-out infinite 1.2s;
     }
 
+    .floaty-slow {
+      animation: floaty 9.4s ease-in-out infinite 0.6s;
+    }
+
+    .grade-card-glow {
+      background:
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.45), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(255, 255, 255, 0.22), transparent 32%);
+    }
+
+    .subject-card-glow {
+      background:
+        radial-gradient(circle at top right, rgba(255, 255, 255, 0.48), transparent 26%),
+        radial-gradient(circle at bottom left, rgba(255, 255, 255, 0.2), transparent 34%);
+    }
+
+    .wiggle-soft {
+      animation: wiggleSoft 4.6s ease-in-out infinite;
+      transform-origin: center;
+    }
+
     @keyframes burst {
       0% {
         opacity: 0;
@@ -150,6 +171,12 @@
       0%, 100% { transform: translateY(0); }
       50% { transform: translateY(-10px); }
     }
+
+    @keyframes wiggleSoft {
+      0%, 100% { transform: rotate(0deg); }
+      25% { transform: rotate(-3deg); }
+      75% { transform: rotate(3deg); }
+    }
   </style>
 </head>
 <body class="font-cairo antialiased">
@@ -157,6 +184,7 @@
     <div class="floaty absolute -right-10 top-12 h-32 w-32 rounded-full bg-kidBlue/30 blur-2xl"></div>
     <div class="floaty-delay absolute left-2 top-24 h-40 w-40 rounded-full bg-kidPink/20 blur-2xl"></div>
     <div class="floaty absolute bottom-10 right-1/4 h-36 w-36 rounded-full bg-kidGreen/20 blur-2xl"></div>
+    <div class="floaty-slow absolute left-1/3 top-1/2 h-28 w-28 rounded-full bg-kidYellow/30 blur-2xl"></div>
   </div>
 
   <div class="relative z-10 flex min-h-screen flex-col">
@@ -164,9 +192,6 @@
       <div class="mx-auto max-w-6xl rounded-[2rem] border border-white/70 bg-white/80 px-4 py-4 shadow-float backdrop-blur">
         <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div class="flex items-center gap-2">
-            <button onclick="openAdminRoute()" class="rounded-2xl bg-slate-100 p-3 text-slate-500 transition hover:bg-kidBlue/20 hover:text-sky-700 focus:outline-none focus:ring-4 focus:ring-sky-200" title="لوحة الإدارة">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-            </button>
             <button
               id="backButton"
               type="button"
@@ -198,60 +223,94 @@
     <main class="flex-1 px-4 pb-10 pt-6 sm:px-6">
       <div class="mx-auto max-w-6xl">
         <section id="homeView" class="view space-y-8">
-          <div class="grid gap-5 lg:grid-cols-[1.12fr_0.88fr]">
-            <div class="relative overflow-hidden rounded-[2rem] border border-white/70 bg-white/85 p-6 shadow-float sm:p-8">
-              <div class="absolute left-4 top-4 rounded-full bg-gradient-to-r from-kidBlue/20 to-kidGreen/20 px-4 py-2 text-xs font-extrabold text-kidInk sm:text-sm">
-                تعلّم واكتشف وشارك
-              </div>
-              <div class="mt-10 max-w-2xl sm:mt-14">
-                <p class="inline-flex items-center gap-2 rounded-full bg-kidBlue/15 px-4 py-2 text-sm font-bold text-sky-700">
-                  <span>🚀</span>
-                  <span>منصة عربية مرحة للصفوف الابتدائية</span>
-                </p>
-                <h2 class="mt-4 text-3xl font-black leading-tight text-kidInk sm:text-4xl lg:text-5xl">
-                  اختر صفك، شاهد الدرس، ثم افتح الأسئلة واحصل على نقاطك الخاصة
-                </h2>
-                <p class="mt-4 max-w-xl text-base leading-8 text-slate-600 sm:text-lg">
-                  صُممت هذه الصفحة لتعمل مباشرة داخل المتصفح، مع محتوى يمكن تعديله محليًا من لوحة الإدارة المحمية بكلمة مرور.
-                </p>
-                <div class="mt-6 flex flex-wrap gap-3">
-                  <div class="rounded-2xl bg-kidYellow/70 px-4 py-3 text-sm font-bold text-kidInk shadow-sm">فيديو ثم اختبار</div>
-                  <div class="rounded-2xl bg-kidPink/15 px-4 py-3 text-sm font-bold text-kidInk shadow-sm">نقاط مستمرة</div>
-                </div>
+          <div class="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+            <div class="relative overflow-hidden rounded-[2.2rem] bg-gradient-to-br from-kidBlue/45 via-white to-kidYellow/55 p-5 shadow-float sm:p-7">
+              <div class="absolute -right-4 top-6 rounded-full bg-white/85 px-4 py-2 text-sm font-black text-kidInk shadow-sm">هيا</div>
+              <div class="flex min-h-[340px] items-center justify-center">
+                <svg viewBox="0 0 420 320" class="w-full max-w-[420px]" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="balloonPink" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#FF84C7"></stop>
+                      <stop offset="100%" stop-color="#FF5AA8"></stop>
+                    </linearGradient>
+                    <linearGradient id="balloonBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#57E1FF"></stop>
+                      <stop offset="100%" stop-color="#1DBEF5"></stop>
+                    </linearGradient>
+                    <linearGradient id="balloonYellow" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#FFE86E"></stop>
+                      <stop offset="100%" stop-color="#FFC84A"></stop>
+                    </linearGradient>
+                  </defs>
+                  <g class="wiggle-soft">
+                    <circle cx="106" cy="72" r="36" fill="#FFE45E" stroke="#173558" stroke-width="6"></circle>
+                    <circle cx="95" cy="65" r="4" fill="#173558"></circle>
+                    <circle cx="118" cy="65" r="4" fill="#173558"></circle>
+                    <path d="M92 83c8 10 22 10 30 0" stroke="#173558" stroke-width="6" stroke-linecap="round"></path>
+                    <path d="M104 107l-6 16m10-16l6 16m-20-6h24" stroke="#173558" stroke-width="5" stroke-linecap="round"></path>
+                  </g>
+                  <g class="floaty">
+                    <ellipse cx="330" cy="78" rx="36" ry="44" fill="url(#balloonPink)" stroke="#173558" stroke-width="6"></ellipse>
+                    <path d="M330 122c-5 10-8 14-15 19" stroke="#173558" stroke-width="5" stroke-linecap="round"></path>
+                  </g>
+                  <g class="floaty-delay">
+                    <ellipse cx="274" cy="62" rx="33" ry="40" fill="url(#balloonBlue)" stroke="#173558" stroke-width="6"></ellipse>
+                    <path d="M274 103c-4 11-8 20-15 28" stroke="#173558" stroke-width="5" stroke-linecap="round"></path>
+                  </g>
+                  <g class="floaty-slow">
+                    <ellipse cx="370" cy="132" rx="28" ry="34" fill="url(#balloonYellow)" stroke="#173558" stroke-width="6"></ellipse>
+                    <path d="M370 166c-3 8-6 15-11 23" stroke="#173558" stroke-width="5" stroke-linecap="round"></path>
+                  </g>
+                  <g>
+                    <path d="M154 220c0-44 34-78 78-78s78 34 78 78v26H154z" fill="#8A92FF" stroke="#173558" stroke-width="8" stroke-linejoin="round"></path>
+                    <circle cx="191" cy="198" r="11" fill="#173558"></circle>
+                    <circle cx="273" cy="198" r="11" fill="#173558"></circle>
+                    <path d="M196 229c18 16 54 16 72 0" stroke="#173558" stroke-width="8" stroke-linecap="round"></path>
+                    <path d="M200 133l11 25m52-25l-11 25m-57 87l-15 31m95-31l15 31" stroke="#173558" stroke-width="8" stroke-linecap="round"></path>
+                  </g>
+                  <g>
+                    <circle cx="92" cy="208" r="15" fill="#FF6DB2" stroke="#173558" stroke-width="5"></circle>
+                    <path d="M92 184v48m-24-24h48" stroke="#173558" stroke-width="5" stroke-linecap="round"></path>
+                    <circle cx="57" cy="248" r="10" fill="#27D4FF" stroke="#173558" stroke-width="4"></circle>
+                    <circle cx="126" cy="254" r="10" fill="#98EC54" stroke="#173558" stroke-width="4"></circle>
+                  </g>
+                  <g>
+                    <path d="M314 246l17-34 17 34 38 5-28 26 7 38-34-17-34 17 7-38-28-26z" fill="#FFE45E" stroke="#173558" stroke-width="6" stroke-linejoin="round"></path>
+                  </g>
+                </svg>
               </div>
             </div>
 
-            <div class="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-kidBlue/35 via-white to-kidYellow/50 p-6 shadow-float">
-              <div class="absolute right-4 top-4 rounded-full bg-white/80 px-4 py-2 text-sm font-black text-kidInk">
-                🌈 تعلم بطريقة ممتعة
+            <div class="rounded-[2.2rem] border border-white/70 bg-white/85 p-6 shadow-float sm:p-8">
+              <div class="inline-flex rounded-full bg-kidPink/15 px-4 py-2 text-lg font-black text-kidInk">✨</div>
+              <h2 class="mt-5 text-4xl font-black leading-tight text-kidInk sm:text-5xl">اختر صفك</h2>
+              <div class="mt-6 grid grid-cols-3 gap-3">
+                <div class="rounded-[1.5rem] bg-kidYellow/60 p-4 text-center shadow-sm">
+                  <div class="text-4xl">🎥</div>
+                  <p class="mt-2 text-lg font-black text-kidInk">شاهد</p>
+                </div>
+                <div class="rounded-[1.5rem] bg-kidBlue/20 p-4 text-center shadow-sm">
+                  <div class="text-4xl">🧩</div>
+                  <p class="mt-2 text-lg font-black text-kidInk">أجب</p>
+                </div>
+                <div class="rounded-[1.5rem] bg-kidGreen/35 p-4 text-center shadow-sm">
+                  <div class="text-4xl">⭐</div>
+                  <p class="mt-2 text-lg font-black text-kidInk">اربح</p>
+                </div>
               </div>
-              <div class="relative flex min-h-[280px] items-center justify-center">
-                <div class="absolute -left-1 bottom-4 rounded-[2rem] bg-white/85 px-4 py-3 text-sm font-black text-kidInk shadow-lg floaty">
-                  فيديو تعليمي
-                </div>
-                <div class="absolute bottom-16 right-0 rounded-[2rem] bg-kidYellow/85 px-4 py-3 text-sm font-black text-kidInk shadow-lg floaty-delay">
-                  أسئلة تفاعلية
-                </div>
-                <div class="absolute left-6 top-16 rounded-[2rem] bg-kidPink/20 px-4 py-3 text-sm font-black text-kidInk shadow-lg floaty">
-                  نقاط باسم الطالب
-                </div>
-                <div class="flex h-56 w-56 items-center justify-center rounded-full bg-white/90 shadow-2xl ring-8 ring-white/40">
-                  <div class="text-center">
-                    <div class="text-6xl">🎓</div>
-                    <p class="mt-3 text-xl font-black text-kidInk">لنبدأ الآن</p>
-                    <p class="text-sm font-bold text-slate-500">اضغط على الصف المناسب</p>
-                  </div>
-                </div>
+              <div class="mt-6 flex items-center justify-center gap-4 rounded-[1.8rem] bg-gradient-to-r from-kidBlue/15 via-kidPink/10 to-kidYellow/20 p-5">
+                <div class="text-5xl">🐻</div>
+                <div class="text-5xl">🎈</div>
+                <div class="text-5xl">🌟</div>
+                <div class="text-5xl">🐥</div>
               </div>
             </div>
           </div>
 
           <div class="rounded-[2rem] border border-white/60 bg-white/80 p-5 shadow-float sm:p-6">
             <div class="mb-5 flex items-center justify-between gap-4">
-              <div>
-                <h3 class="text-2xl font-black text-kidInk">الصفوف الدراسية</h3>
-                <p class="mt-1 text-sm font-semibold text-slate-500 sm:text-base">اختر الصف المناسب لتظهر لك المواد الخاصة به فقط.</p>
-              </div>
+              <h3 class="text-3xl font-black text-kidInk">الصفوف</h3>
+              <div class="rounded-full bg-kidYellow/60 px-4 py-2 text-sm font-black text-kidInk shadow-sm">اضغط</div>
             </div>
             <div id="gradesGrid" class="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6"></div>
           </div>
@@ -276,7 +335,7 @@
         <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-kidBlue/15 text-5xl">👋</div>
         <h2 class="mt-4 text-2xl font-black text-kidInk">ما اسمك؟</h2>
         <p class="mt-2 text-sm leading-7 text-slate-500">
-          اكتب اسمك مرة واحدة فقط، وسنحتفظ بنقاطك باسمك داخل هذا المتصفح.
+          اكتب اسمك ثم ابدأ فورًا.
         </p>
       </div>
       <label class="mt-5 block">
@@ -295,7 +354,7 @@
         type="button"
         class="mt-2 w-full rounded-2xl bg-kidInk px-5 py-3 text-base font-black text-white transition hover:scale-[1.01] hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-200"
       >
-        حفظ الاسم والبدء
+        ابدأ
       </button>
     </div>
   </div>
@@ -314,12 +373,12 @@
     const DEFAULT_VIDEO_URL = "https://www.youtube-nocookie.com/embed/aqz-KE-bpKQ?rel=0";
 
     const GRADE_META = [
-      { id: 1, label: "الصف الأول", badge: "١", icon: "star", gradient: "from-[#5FE1FF] via-[#B7F8FF] to-[#F5FEFF]" },
-      { id: 2, label: "الصف الثاني", badge: "٢", icon: "rocket", gradient: "from-[#FFE45E] via-[#FFF0A8] to-[#FFFBE6]" },
-      { id: 3, label: "الصف الثالث", badge: "٣", icon: "pencil", gradient: "from-[#A6EE6A] via-[#D9F7B9] to-[#F8FFF0]" },
-      { id: 4, label: "الصف الرابع", badge: "٤", icon: "sun", gradient: "from-[#FF9C6E] via-[#FFD2AF] to-[#FFF2E8]" },
-      { id: 5, label: "الصف الخامس", badge: "٥", icon: "rainbow", gradient: "from-[#FF6DB2] via-[#FFC9E4] to-[#FFF1F8]" },
-      { id: 6, label: "الصف السادس", badge: "٦", icon: "trophy", gradient: "from-[#8A92FF] via-[#D2D7FF] to-[#F1F3FF]" },
+      { id: 1, label: "الصف الأول", badge: "١", icon: "star", gradient: "from-[#31DFFF] via-[#7AEAFF] to-[#D7FAFF]" },
+      { id: 2, label: "الصف الثاني", badge: "٢", icon: "rocket", gradient: "from-[#FFE45E] via-[#FFD04D] to-[#FFF0AF]" },
+      { id: 3, label: "الصف الثالث", badge: "٣", icon: "pencil", gradient: "from-[#9BF04D] via-[#BFFF70] to-[#E8FFBD]" },
+      { id: 4, label: "الصف الرابع", badge: "٤", icon: "sun", gradient: "from-[#FF9554] via-[#FFB16D] to-[#FFE1B8]" },
+      { id: 5, label: "الصف الخامس", badge: "٥", icon: "rainbow", gradient: "from-[#FF66B1] via-[#FF87C0] to-[#FFD4EA]" },
+      { id: 6, label: "الصف السادس", badge: "٦", icon: "trophy", gradient: "from-[#7E86FF] via-[#9EA4FF] to-[#D8DBFF]" },
     ];
 
     const LOWER_PRIMARY_SUBJECTS = [
@@ -674,6 +733,63 @@
       return grade?.subjects.find((subject) => subject.id === state.adminSubjectId) || null;
     }
 
+    function getSubjectTheme(subject) {
+      const themes = {
+        book: {
+          gradient: "from-[#FFB049] via-[#FFD56A] to-[#FFF1C2]",
+          badge: "bg-white/90",
+          iconWrap: "bg-white/85",
+        },
+        calculator: {
+          gradient: "from-[#FFE45E] via-[#FFF083] to-[#FFF8C7]",
+          badge: "bg-white/90",
+          iconWrap: "bg-white/85",
+        },
+        abc: {
+          gradient: "from-[#7E8BFF] via-[#A1ACFF] to-[#E1E5FF]",
+          badge: "bg-white/90",
+          iconWrap: "bg-white/85",
+        },
+        moon: {
+          gradient: "from-[#A47AFF] via-[#C7A4FF] to-[#EEE3FF]",
+          badge: "bg-white/90",
+          iconWrap: "bg-white/85",
+        },
+        globe: {
+          gradient: "from-[#4DDBFF] via-[#7CE8FF] to-[#D4F9FF]",
+          badge: "bg-white/90",
+          iconWrap: "bg-white/85",
+        },
+        robot: {
+          gradient: "from-[#98EC54] via-[#B9F57B] to-[#E7FFD0]",
+          badge: "bg-white/90",
+          iconWrap: "bg-white/85",
+        },
+      };
+      return themes[subject.icon] || {
+        gradient: "from-[#FFE45E] via-[#FFD56A] to-[#FFF4C8]",
+        badge: "bg-white/90",
+        iconWrap: "bg-white/85",
+      };
+    }
+
+    function resetAllStudentData() {
+      const shouldReset = window.confirm("سيتم حذف جميع أسماء الطلبة ونقاطهم وسجلات التفاعل. هل تريد المتابعة؟");
+      if (!shouldReset) {
+        return;
+      }
+
+      localStorage.removeItem(STORAGE_KEYS.students);
+      localStorage.removeItem(STORAGE_KEYS.currentStudent);
+      state.currentStudentKey = "";
+      renderStudentBadge();
+      renderStudentsTable();
+      if (state.currentView !== "admin") {
+        ensureStudentIdentity();
+      }
+      window.alert("تمت إعادة ضبط جميع بيانات الطلبة.");
+    }
+
     function renderStudentBadge() {
       const record = getCurrentStudentRecord();
       if (!record || state.currentView === "admin") {
@@ -791,20 +907,20 @@
         (grade) => `
           <button
             type="button"
-            class="card-pop group relative overflow-hidden rounded-[1.85rem] bg-gradient-to-br ${grade.gradient} p-4 text-right shadow-float focus:outline-none focus:ring-4 focus:ring-sky-200"
+            class="card-pop grade-card-glow group relative overflow-hidden rounded-[2rem] bg-gradient-to-br ${grade.gradient} p-4 text-right shadow-float ring-4 ring-white/55 focus:outline-none focus:ring-4 focus:ring-sky-200 sm:p-5"
             data-grade-id="${grade.id}"
             aria-label="افتح ${escapeHtml(grade.label)}"
           >
-            <div class="absolute left-3 top-3 rounded-full bg-white/80 px-3 py-1 text-xs font-black text-kidInk shadow-sm">${grade.badge}</div>
+            <div class="absolute left-3 top-3 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-base font-black text-kidInk shadow-sm">${grade.badge}</div>
             <div class="flex items-start justify-between gap-3">
-              <div class="rounded-[1.4rem] bg-white/80 p-2 shadow-sm">
-                ${getIconSvg(grade.icon, "h-16 w-16")}
+              <div class="rounded-[1.7rem] bg-white/85 p-3 shadow-md ring-2 ring-white/70">
+                ${getIconSvg(grade.icon, "h-20 w-20 sm:h-24 sm:w-24")}
               </div>
-              <span class="rounded-full bg-white/85 px-3 py-1 text-xs font-black text-kidInk">${grade.subjects.length} مادة</span>
+              <span class="rounded-full bg-white/90 px-4 py-2 text-sm font-black text-kidInk shadow-sm">${grade.subjects.length} مادة</span>
             </div>
             <div class="mt-5">
-              <h3 class="text-xl font-black text-kidInk">${escapeHtml(grade.label)}</h3>
-              <p class="mt-1 text-sm font-bold text-slate-600">اضغط لعرض المواد المخصصة لهذا الصف</p>
+              <h3 class="text-2xl font-black text-kidInk sm:text-[1.7rem]">${escapeHtml(grade.label)}</h3>
+              <p class="mt-2 text-base font-black text-kidInk/80">اضغط</p>
             </div>
           </button>
         `
@@ -827,65 +943,40 @@
     function renderGradeView() {
       const grade = getSelectedGrade();
       gradeView.innerHTML = `
-        <div class="space-y-6">
-          <div class="grid gap-5 lg:grid-cols-[1fr_0.84fr]">
-            <div class="overflow-hidden rounded-[2rem] border border-white/70 bg-white/85 p-6 shadow-float sm:p-8">
-              <div class="inline-flex items-center gap-2 rounded-full bg-kidGreen/25 px-4 py-2 text-sm font-black text-kidInk">
+        <div class="space-y-5">
+          <div class="rounded-[2rem] border border-white/70 bg-white/85 p-6 shadow-float sm:p-8">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+              <div class="inline-flex items-center gap-3 rounded-full bg-kidGreen/25 px-4 py-3 text-lg font-black text-kidInk">
                 <span>📚</span>
                 <span>${escapeHtml(grade.label)}</span>
               </div>
-              <h2 class="mt-4 text-3xl font-black text-kidInk sm:text-4xl">اختر المادة التي تريد دراستها</h2>
-              <p class="mt-3 max-w-2xl text-base leading-8 text-slate-600">
-                هذه القائمة تعرض فقط المواد المرتبطة بهذا الصف. بعد اختيار المادة ستشاهد الفيديو ثم تفتح الأسئلة يدويًا.
-              </p>
-            </div>
-
-            <div class="rounded-[2rem] bg-gradient-to-br from-kidYellow/70 via-white to-kidBlue/35 p-6 shadow-float">
-              <div class="grid min-h-[220px] gap-4 sm:grid-cols-3 lg:grid-cols-1">
-                <div class="rounded-[1.5rem] bg-white/80 p-4 text-center shadow-sm">
-                  <div class="text-4xl">🎥</div>
-                  <p class="mt-2 text-sm font-black text-kidInk">شاهد الدرس</p>
-                </div>
-                <div class="rounded-[1.5rem] bg-white/80 p-4 text-center shadow-sm">
-                  <div class="text-4xl">🔓</div>
-                  <p class="mt-2 text-sm font-black text-kidInk">افتح الاختبار</p>
-                </div>
-                <div class="rounded-[1.5rem] bg-white/80 p-4 text-center shadow-sm">
-                  <div class="text-4xl">⭐</div>
-                  <p class="mt-2 text-sm font-black text-kidInk">اجمع نقاطك</p>
-                </div>
-              </div>
+              <div class="rounded-full bg-kidYellow/65 px-4 py-3 text-base font-black text-kidInk shadow-sm">اختر مادة</div>
             </div>
           </div>
 
-          <div class="rounded-[2rem] border border-white/70 bg-white/80 p-5 shadow-float sm:p-6">
-            <div class="mb-5 flex items-center justify-between gap-4">
-              <div>
-                <h3 class="text-2xl font-black text-kidInk">مواد ${escapeHtml(grade.label)}</h3>
-                <p class="mt-1 text-sm font-semibold text-slate-500 sm:text-base">لن تظهر هنا إلا المواد المحددة لهذا الصف.</p>
-              </div>
-            </div>
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              ${grade.subjects.map((subject) => `
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              ${grade.subjects.map((subject) => {
+                const theme = getSubjectTheme(subject);
+                return `
                 <button
                   type="button"
-                  class="card-pop group overflow-hidden rounded-[1.85rem] bg-gradient-to-br from-white to-slate-50 p-4 text-right shadow-float focus:outline-none focus:ring-4 focus:ring-sky-200"
+                  class="card-pop subject-card-glow group overflow-hidden rounded-[2rem] bg-gradient-to-br ${theme.gradient} p-4 text-right shadow-float ring-4 ring-white/55 focus:outline-none focus:ring-4 focus:ring-sky-200 sm:p-5"
                   data-subject-id="${subject.id}"
                   aria-label="افتح ${escapeHtml(subject.label)}"
                 >
                   <div class="flex items-start justify-between gap-3">
-                    <div class="rounded-[1.4rem] bg-kidBlue/10 p-2 shadow-sm">
-                      ${getIconSvg(subject.icon, "h-14 w-14")}
+                    <div class="rounded-[1.6rem] ${theme.iconWrap} p-3 shadow-md ring-2 ring-white/70">
+                      ${getIconSvg(subject.icon, "h-16 w-16 sm:h-20 sm:w-20")}
                     </div>
-                    <span class="rounded-full bg-kidYellow/50 px-3 py-1 text-xs font-black text-kidInk">${subject.questions.length} سؤال</span>
+                    <span class="rounded-full ${theme.badge} px-4 py-2 text-sm font-black text-kidInk shadow-sm">${subject.questions.length} سؤال</span>
                   </div>
                   <div class="mt-5">
-                    <h4 class="text-xl font-black text-kidInk">${escapeHtml(subject.label)}</h4>
-                    <p class="mt-2 text-sm font-bold text-slate-600">فيديو تعليمي + اختبار مقفول حتى انتهاء المشاهدة</p>
+                    <h4 class="text-2xl font-black text-kidInk sm:text-[1.7rem]">${escapeHtml(subject.label)}</h4>
+                    <p class="mt-2 text-base font-black text-kidInk/80">ابدأ</p>
                   </div>
                 </button>
-              `).join("")}
-            </div>
+              `;
+              }).join("")}
           </div>
         </div>
       `;
@@ -953,8 +1044,7 @@
             <div class="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p class="inline-flex rounded-full bg-kidBlue/15 px-4 py-2 text-sm font-black text-sky-700">${escapeHtml(grade.label)} • ${escapeHtml(subject.label)}</p>
-                <h2 class="mt-3 text-2xl font-black text-kidInk sm:text-3xl">فيديو الشرح والاختبار</h2>
-                <p class="mt-2 text-sm leading-7 text-slate-600 sm:text-base">بعد مشاهدة الفيديو اضغط الزر المخصص لفتح الأسئلة.</p>
+                <h2 class="mt-3 text-2xl font-black text-kidInk sm:text-3xl">شاهد ثم افتح</h2>
               </div>
               <div id="quizProgressBadge" class="rounded-[1.5rem] bg-kidGreen/30 px-4 py-3 text-sm font-black text-kidInk shadow-sm">
                 تم حل ${answeredCount} من ${subject.questions.length}
@@ -971,9 +1061,6 @@
               <div class="mt-4 overflow-hidden rounded-[1.75rem] border-4 border-white bg-slate-100 shadow-lg">
                 ${renderVideoPlayer(subject)}
               </div>
-              <div class="mt-4 rounded-[1.5rem] bg-slate-50 p-4 text-sm leading-7 text-slate-600">
-                بعد الانتهاء من المشاهدة اضغط الزر التالي لفتح الاختبار يدويًا.
-              </div>
               <button
                 id="finishWatchingButton"
                 type="button"
@@ -989,7 +1076,7 @@
                 <div class="rounded-full bg-kidPink/15 px-4 py-2 text-xs font-black text-kidInk">${state.videoFinished ? "الاختبار مفتوح" : "الاختبار مقفول"}</div>
               </div>
               <div class="mt-2 text-sm font-semibold text-slate-500" id="quizStatus" aria-live="polite">
-                ${state.videoFinished ? "يمكنك الآن الإجابة عن الأسئلة." : "الأسئلة ظاهرة ولكنها مقفولة حتى تضغط زر انتهاء المشاهدة."}
+                ${state.videoFinished ? "ابدأ الإجابة." : "اضغط زر انتهاء المشاهدة."}
               </div>
 
               <div class="relative mt-5">
@@ -1008,9 +1095,7 @@
                     <div class="max-w-sm rounded-[1.75rem] border border-white/70 bg-white/90 p-5 text-center shadow-float">
                       <div class="text-5xl">🔒</div>
                       <h4 class="mt-3 text-xl font-black text-kidInk">الاختبار مقفول حاليًا</h4>
-                      <p class="mt-2 text-sm leading-7 text-slate-600">
-                        شاهد الفيديو أولًا، ثم اضغط زر <span class="font-black">لقد انتهيت من المشاهدة</span> لفتح الأسئلة.
-                      </p>
+                      <p class="mt-2 text-base font-black text-slate-600">شاهد ثم اضغط الزر</p>
                     </div>
                   </div>
                 `}
@@ -1072,6 +1157,9 @@
         // 4. إخفاء القفل الكبير
         const lockOverlay = quizView.querySelector(".lock-overlay");
         if (lockOverlay) lockOverlay.remove();
+
+        const firstQuestion = quizView.querySelector("[data-answer]");
+        firstQuestion?.focus();
       };
 
       // ربط الوظيفة بالزر، وأيضاً بشكل القفل الكبير 🔒 ليكون متجاوباً مع الأطفال
@@ -1311,13 +1399,26 @@
                   من هنا يمكنك إدارة المواد الخاصة بكل صف، وتحديث روابط الفيديو، وإضافة الأسئلة والخيارات وحذفها.
                 </p>
               </div>
-              <button
-                id="adminLogoutButton"
-                type="button"
-                class="rounded-2xl bg-slate-100 px-4 py-3 text-sm font-black text-kidInk transition hover:bg-slate-200 focus:outline-none focus:ring-4 focus:ring-slate-200"
-              >
-                تسجيل خروج الإدارة
-              </button>
+              <div class="flex flex-wrap items-center gap-3">
+                <button
+                  id="resetStudentDataButton"
+                  type="button"
+                  class="inline-flex items-center gap-2 rounded-2xl bg-rose-100 px-4 py-3 text-sm font-black text-rose-700 transition hover:bg-rose-200 focus:outline-none focus:ring-4 focus:ring-rose-200"
+                  title="إعادة ضبط بيانات الطلبة"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m14.356-2A8.001 8.001 0 104 12m0 0H9m11 8v-5h-.581" />
+                  </svg>
+                  <span>تصفير بيانات الطلبة</span>
+                </button>
+                <button
+                  id="adminLogoutButton"
+                  type="button"
+                  class="rounded-2xl bg-slate-100 px-4 py-3 text-sm font-black text-kidInk transition hover:bg-slate-200 focus:outline-none focus:ring-4 focus:ring-slate-200"
+                >
+                  تسجيل خروج الإدارة
+                </button>
+              </div>
             </div>
             </div>
             <div class="mt-4 flex gap-2 border-b border-slate-200 pb-4">
@@ -1439,6 +1540,12 @@
           </div>
 
           <div id="adminStudentsSection" class="hidden overflow-x-auto rounded-[2rem] border border-white/70 bg-white/90 p-5 shadow-float sm:p-6">
+             <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+               <div>
+                 <h3 class="text-2xl font-black text-kidInk">سجل الطلبة</h3>
+                 <p class="mt-1 text-sm font-bold text-slate-500">الزر الأحمر بالأعلى يحذف جميع الأسماء والنقاط وسجلات التفاعل.</p>
+               </div>
+             </div>
              <table class="w-full text-right border-collapse min-w-[600px]">
                 <thead>
                   <tr class="bg-slate-50 text-slate-500 text-sm">
@@ -1528,6 +1635,8 @@
     }
 
     function bindAdminEvents() {
+      adminView.querySelector("#resetStudentDataButton")?.addEventListener("click", resetAllStudentData);
+
       adminView.querySelector("#adminLogoutButton")?.addEventListener("click", () => {
         localStorage.removeItem(STORAGE_KEYS.adminAuth);
         location.hash = "";
@@ -1810,91 +1919,108 @@ window.switchAdminTab = function(tabName) {
       const icons = {
         star: `
           <svg ${base} aria-hidden="true">
-            <circle cx="32" cy="32" r="29" fill="#ffffff" fill-opacity="0.82"/>
-            <path d="M32 13l5.5 11.2 12.3 1.8-8.9 8.7 2.1 12.3L32 41.5 21 47l2.1-12.3-8.9-8.7 12.3-1.8L32 13z" fill="#FFE45E" stroke="#173558" stroke-width="2.3" stroke-linejoin="round"/>
+            <circle cx="32" cy="32" r="28" fill="#27D4FF"/>
+            <circle cx="32" cy="32" r="24" fill="#8EF0FF"/>
+            <path d="M32 14.5l5.9 11.6 12.8 1.9-9.3 9 2.2 12.8L32 44.1 20.4 49.8l2.2-12.8-9.3-9 12.8-1.9L32 14.5z" fill="#FFE45E" stroke="#173558" stroke-width="3.4" stroke-linejoin="round"/>
           </svg>
         `,
         rocket: `
           <svg ${base} aria-hidden="true">
-            <circle cx="32" cy="32" r="29" fill="#ffffff" fill-opacity="0.82"/>
-            <path d="M37.8 17.6c6.8 1.1 10.6 4.9 11.7 11.7l-10.5 10.5c-1.9 1.9-4.4 3-7.1 3.1l-10 0.3 0.3-10c0.1-2.7 1.2-5.2 3.1-7.1l10.5-10.5z" fill="#27D4FF" stroke="#173558" stroke-width="2.3" stroke-linejoin="round"/>
-            <circle cx="37.5" cy="26.5" r="3.6" fill="#FFE45E" stroke="#173558" stroke-width="2"/>
+            <circle cx="32" cy="32" r="28" fill="#FF6DB2"/>
+            <circle cx="32" cy="32" r="24" fill="#FFC4E2"/>
+            <path d="M39 14c8 2 12 8 12 16l-12 12c-2 2-4.8 3.2-7.7 3.2l-8.8.2.2-8.8c0-2.9 1.2-5.7 3.2-7.7L39 14z" fill="#27D4FF" stroke="#173558" stroke-width="3.2" stroke-linejoin="round"/>
+            <circle cx="38" cy="26" r="4" fill="#FFE45E" stroke="#173558" stroke-width="2.6"/>
+            <path d="M22 41l-5 5 7-1 4-4m13 3l3 6 3-10" stroke="#173558" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         `,
         pencil: `
           <svg ${base} aria-hidden="true">
-            <circle cx="32" cy="32" r="29" fill="#ffffff" fill-opacity="0.82"/>
-            <path d="M18 43.5L41.7 19.8l6.5 6.5L24.5 50H18v-6.5z" fill="#FFE45E" stroke="#173558" stroke-width="2.3" stroke-linejoin="round"/>
-            <path d="M41.7 19.8l3.1-3.1a3.8 3.8 0 015.4 0l1.2 1.2a3.8 3.8 0 010 5.4l-3.2 3.1-6.5-6.6z" fill="#FF6DB2" stroke="#173558" stroke-width="2.3" stroke-linejoin="round"/>
+            <circle cx="32" cy="32" r="28" fill="#98EC54"/>
+            <circle cx="32" cy="32" r="24" fill="#D9FFB6"/>
+            <path d="M18 45.5L41 22.5l7 7L25 52H18v-6.5z" fill="#FFE45E" stroke="#173558" stroke-width="3.2" stroke-linejoin="round"/>
+            <path d="M41 22.5l3.4-3.4a4 4 0 015.6 0l1.5 1.5a4 4 0 010 5.6L48 29.5 41 22.5z" fill="#FF6DB2" stroke="#173558" stroke-width="3.2" stroke-linejoin="round"/>
           </svg>
         `,
         sun: `
           <svg ${base} aria-hidden="true">
-            <circle cx="32" cy="32" r="29" fill="#ffffff" fill-opacity="0.82"/>
-            <circle cx="32" cy="32" r="10" fill="#FFE45E" stroke="#173558" stroke-width="2.3"/>
-            <path d="M32 13v6m0 26v6M13 32h6m26 0h6M19.3 19.3l4.2 4.2m16.9 16.9l4.3 4.3m0-25.4l-4.3 4.2M23.5 40.5l-4.2 4.2" stroke="#173558" stroke-width="2.3" stroke-linecap="round"/>
+            <circle cx="32" cy="32" r="28" fill="#FF9C6E"/>
+            <circle cx="32" cy="32" r="24" fill="#FFD37D"/>
+            <circle cx="32" cy="32" r="11" fill="#FFE45E" stroke="#173558" stroke-width="3"/>
+            <path d="M32 12v7m0 26v7M12 32h7m26 0h7M18 18l5 5m18 18l5 5m0-28l-5 5M23 41l-5 5" stroke="#173558" stroke-width="3.1" stroke-linecap="round"/>
           </svg>
         `,
         rainbow: `
           <svg ${base} aria-hidden="true">
-            <circle cx="32" cy="32" r="29" fill="#ffffff" fill-opacity="0.82"/>
-            <path d="M17 40a15 15 0 0130 0" stroke="#FF6DB2" stroke-width="5" stroke-linecap="round"/>
-            <path d="M21 40a11 11 0 0122 0" stroke="#FFE45E" stroke-width="5" stroke-linecap="round"/>
-            <path d="M25 40a7 7 0 0114 0" stroke="#27D4FF" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="32" cy="32" r="28" fill="#8A92FF"/>
+            <circle cx="32" cy="32" r="24" fill="#D9DCFF"/>
+            <path d="M16 41a16 16 0 0132 0" stroke="#FF6DB2" stroke-width="6" stroke-linecap="round"/>
+            <path d="M20 41a12 12 0 0124 0" stroke="#FFE45E" stroke-width="6" stroke-linecap="round"/>
+            <path d="M24 41a8 8 0 0116 0" stroke="#27D4FF" stroke-width="6" stroke-linecap="round"/>
+            <circle cx="16" cy="41" r="4" fill="#FFFFFF" stroke="#173558" stroke-width="2.4"/>
+            <circle cx="48" cy="41" r="4" fill="#FFFFFF" stroke="#173558" stroke-width="2.4"/>
           </svg>
         `,
         trophy: `
           <svg ${base} aria-hidden="true">
-            <circle cx="32" cy="32" r="29" fill="#ffffff" fill-opacity="0.82"/>
-            <path d="M23 16h18v8a9 9 0 01-18 0v-8z" fill="#FFE45E" stroke="#173558" stroke-width="2.3" stroke-linejoin="round"/>
-            <path d="M23 19h-6a4 4 0 004 8h3m17-8h6a4 4 0 01-4 8h-3" stroke="#173558" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M32 33v8m-7 7h14m-10-7h6" stroke="#173558" stroke-width="2.3" stroke-linecap="round"/>
+            <circle cx="32" cy="32" r="28" fill="#FFE45E"/>
+            <circle cx="32" cy="32" r="24" fill="#FFF0A7"/>
+            <path d="M22 16h20v9a10 10 0 01-20 0v-9z" fill="#FF9C6E" stroke="#173558" stroke-width="3.2" stroke-linejoin="round"/>
+            <path d="M22 20h-7a4 4 0 004 8h3m20-8h7a4 4 0 01-4 8h-3" stroke="#173558" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M32 35v8m-8 6h16m-11-6h6" stroke="#173558" stroke-width="3.2" stroke-linecap="round"/>
           </svg>
         `,
         book: `
           <svg ${base} aria-hidden="true">
-            <rect x="11" y="15" width="42" height="34" rx="8" fill="#FFFFFF" fill-opacity="0.82"/>
-            <path d="M17 20.5A5.5 5.5 0 0122.5 15H32v28h-9.5A5.5 5.5 0 0017 48.5v-28z" fill="#FF9C6E" stroke="#173558" stroke-width="2.3" stroke-linejoin="round"/>
-            <path d="M47 20.5A5.5 5.5 0 0041.5 15H32v28h9.5a5.5 5.5 0 015.5 5.5v-28z" fill="#27D4FF" stroke="#173558" stroke-width="2.3" stroke-linejoin="round"/>
+            <rect x="8" y="8" width="48" height="48" rx="16" fill="#FF9C6E"/>
+            <rect x="14" y="13" width="36" height="38" rx="11" fill="#FFF2E7" stroke="#173558" stroke-width="3"></rect>
+            <path d="M18 22a6 6 0 016-6h8v26h-8a6 6 0 00-6 6V22z" fill="#FFE45E" stroke="#173558" stroke-width="3" stroke-linejoin="round"/>
+            <path d="M46 22a6 6 0 00-6-6h-8v26h8a6 6 0 016 6V22z" fill="#27D4FF" stroke="#173558" stroke-width="3" stroke-linejoin="round"/>
           </svg>
         `,
         calculator: `
           <svg ${base} aria-hidden="true">
-            <rect x="15" y="10" width="34" height="44" rx="9" fill="#FFFFFF" fill-opacity="0.82" stroke="#173558" stroke-width="2.3"/>
-            <rect x="21" y="16" width="22" height="8" rx="3" fill="#D3F8FF" stroke="#173558" stroke-width="2"/>
-            <circle cx="24" cy="32" r="3.3" fill="#FFE45E"/>
-            <circle cx="32" cy="32" r="3.3" fill="#98EC54"/>
-            <circle cx="40" cy="32" r="3.3" fill="#FF6DB2"/>
-            <circle cx="24" cy="41" r="3.3" fill="#FF6DB2"/>
-            <circle cx="32" cy="41" r="3.3" fill="#FFE45E"/>
-            <rect x="37" y="38" width="6" height="10" rx="2" fill="#27D4FF"/>
+            <rect x="8" y="8" width="48" height="48" rx="16" fill="#FFE45E"/>
+            <rect x="16" y="10" width="32" height="44" rx="10" fill="#FFF9E8" stroke="#173558" stroke-width="3"/>
+            <rect x="21" y="16" width="22" height="8" rx="3" fill="#CFF7FF" stroke="#173558" stroke-width="2.4"/>
+            <circle cx="24" cy="33" r="3.6" fill="#27D4FF"/>
+            <circle cx="32" cy="33" r="3.6" fill="#98EC54"/>
+            <circle cx="40" cy="33" r="3.6" fill="#FF6DB2"/>
+            <circle cx="24" cy="42" r="3.6" fill="#FF6DB2"/>
+            <circle cx="32" cy="42" r="3.6" fill="#FFE45E"/>
+            <rect x="37" y="38" width="6" height="10" rx="2" fill="#8A92FF"/>
           </svg>
         `,
         abc: `
           <svg ${base} aria-hidden="true">
-            <rect x="10" y="14" width="44" height="36" rx="10" fill="#FFFFFF" fill-opacity="0.82" stroke="#173558" stroke-width="2.3"/>
-            <text x="32" y="39" text-anchor="middle" font-size="18" font-weight="800" fill="#8A92FF" font-family="Cairo, sans-serif">ABC</text>
+            <rect x="8" y="8" width="48" height="48" rx="16" fill="#8A92FF"/>
+            <rect x="14" y="14" width="36" height="36" rx="12" fill="#EEF0FF" stroke="#173558" stroke-width="3"/>
+            <text x="32" y="39" text-anchor="middle" font-size="19" font-weight="900" fill="#FF6DB2" font-family="Cairo, sans-serif">ABC</text>
           </svg>
         `,
         robot: `
           <svg ${base} aria-hidden="true">
-            <rect x="16" y="18" width="32" height="24" rx="10" fill="#FFFFFF" fill-opacity="0.82" stroke="#173558" stroke-width="2.3"/>
-            <path d="M32 12v6m-9 30v4m18-4v4M24 42h16" stroke="#173558" stroke-width="2.3" stroke-linecap="round"/>
-            <circle cx="25" cy="30" r="4" fill="#27D4FF" stroke="#173558" stroke-width="2"/>
-            <circle cx="39" cy="30" r="4" fill="#FFE45E" stroke="#173558" stroke-width="2"/>
+            <circle cx="32" cy="32" r="28" fill="#98EC54"/>
+            <circle cx="32" cy="32" r="24" fill="#D8FFB6"/>
+            <rect x="17" y="18" width="30" height="24" rx="10" fill="#FFFFFF" stroke="#173558" stroke-width="3"/>
+            <path d="M32 12v6m-9 30v4m18-4v4M24 42h16" stroke="#173558" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="26" cy="30" r="4.2" fill="#27D4FF" stroke="#173558" stroke-width="2.4"/>
+            <circle cx="38" cy="30" r="4.2" fill="#FFE45E" stroke="#173558" stroke-width="2.4"/>
+            <path d="M26 36c2 2 10 2 12 0" stroke="#173558" stroke-width="3" stroke-linecap="round"/>
           </svg>
         `,
         moon: `
           <svg ${base} aria-hidden="true">
-            <circle cx="32" cy="32" r="29" fill="#ffffff" fill-opacity="0.82"/>
-            <path d="M37 16c-7 2-12 8.6-12 16.1C25 40.4 31.6 47 40 47c2.4 0 4.6-.5 6.6-1.5A17.2 17.2 0 1137 16z" fill="#8A92FF" stroke="#173558" stroke-width="2.3" stroke-linejoin="round"/>
-            <circle cx="43.5" cy="23" r="2" fill="#FFE45E"/>
+            <circle cx="32" cy="32" r="28" fill="#8A92FF"/>
+            <circle cx="32" cy="32" r="24" fill="#DADFFF"/>
+            <path d="M37 16c-7 2-12 8.6-12 16.1C25 40.4 31.6 47 40 47c2.4 0 4.6-.5 6.6-1.5A17.2 17.2 0 1137 16z" fill="#FFE45E" stroke="#173558" stroke-width="3" stroke-linejoin="round"/>
+            <path d="M45 19l1.5 3 3.5.5-2.5 2.4.6 3.6-3.1-1.6-3.2 1.6.6-3.6-2.5-2.4 3.5-.5L45 19z" fill="#FF6DB2" stroke="#173558" stroke-width="2.2" stroke-linejoin="round"/>
           </svg>
         `,
         globe: `
           <svg ${base} aria-hidden="true">
-            <circle cx="32" cy="32" r="21" fill="#DFFBFF" stroke="#173558" stroke-width="2.3"/>
-            <path d="M11 32h42M32 11c6 6 8.5 13.2 8.5 21S38 47 32 53M32 11c-6 6-8.5 13.2-8.5 21S26 47 32 53" stroke="#173558" stroke-width="2.3" stroke-linecap="round"/>
+            <circle cx="32" cy="32" r="28" fill="#27D4FF"/>
+            <circle cx="32" cy="32" r="21" fill="#DFFBFF" stroke="#173558" stroke-width="3"/>
+            <path d="M11 32h42M32 11c6 6 8.5 13.2 8.5 21S38 47 32 53M32 11c-6 6-8.5 13.2-8.5 21S26 47 32 53" stroke="#173558" stroke-width="3" stroke-linecap="round"/>
           </svg>
         `,
       };
