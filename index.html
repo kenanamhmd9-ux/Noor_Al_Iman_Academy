@@ -1039,11 +1039,44 @@
         </div>
       `;
 
-      quizView.querySelector("#finishWatchingButton")?.addEventListener("click", () => {
+      // وظيفة فتح الاختبار بطريقة سلسة (بدون إعادة تحميل الفيديو)
+      const unlockQuizHandler = () => {
+        if(state.videoFinished) return;
         state.videoFinished = true;
-        renderQuizView();
-      });
+        
+        // 1. تغيير شكل زر المشاهدة للأخضر
+        const btn = quizView.querySelector("#finishWatchingButton");
+        if (btn) {
+          btn.className = "mt-4 w-full rounded-2xl px-5 py-3 text-base font-black transition focus:outline-none focus:ring-4 bg-kidGreen text-kidInk focus:ring-green-200";
+          btn.textContent = "تم فتح الاختبار";
+        }
+        
+        // 2. تحديث الحالة في الأعلى
+        const status = quizView.querySelector("#quizStatus");
+        if (status) {
+          status.textContent = "يمكنك الآن الإجابة عن الأسئلة.";
+          const badge = quizView.querySelector(".bg-kidPink\\/15");
+          if(badge) badge.textContent = "الاختبار مفتوح";
+        }
+        
+        // 3. إزالة التعتيم وتفعيل أزرار الأسئلة
+        const container = quizView.querySelector("#questionsContainer");
+        if (container) {
+          container.classList.remove("pointer-events-none", "opacity-55", "select-none");
+          container.querySelectorAll("button").forEach(b => {
+            b.classList.remove("cursor-not-allowed");
+            b.removeAttribute("disabled");
+          });
+        }
+        
+        // 4. إخفاء القفل الكبير
+        const lockOverlay = quizView.querySelector(".lock-overlay");
+        if (lockOverlay) lockOverlay.remove();
+      };
 
+      // ربط الوظيفة بالزر، وأيضاً بشكل القفل الكبير 🔒 ليكون متجاوباً مع الأطفال
+      quizView.querySelector("#finishWatchingButton")?.addEventListener("click", unlockQuizHandler);
+      quizView.querySelector(".lock-overlay")?.addEventListener("click", unlockQuizHandler);
       quizView.querySelectorAll("[data-answer]").forEach((button) => {
         button.addEventListener("click", () => handleAnswer(button));
       });
