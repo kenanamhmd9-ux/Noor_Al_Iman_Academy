@@ -830,34 +830,16 @@
         return;
       }
 
-      // تغيير شكل الزرار ليُظهر للطفل أن النظام يبحث في السحابة
       saveStudentNameButton.textContent = "جاري التحقق من السحابة...";
       saveStudentNameButton.disabled = true;
 
-      // هنا الموقع بيسأل قاعدة بيانات Supabase
       const isEligible = await checkStudentEligibilityFromDB(name, gradeId);
 
-      // إعادة الزرار لشكله الطبيعي
       saveStudentNameButton.textContent = "حفظ الاسم والبدء";
       saveStudentNameButton.disabled = false;
 
       if (!isEligible) {
         studentPromptError.textContent = "عفواً! هذا الاسم غير مسجل بهذا الصف في قاعدة البيانات.";
-        triggerShake(studentNameInput);
-        triggerShake(studentGradeInput);
-        return;
-      }
-
-      state.currentStudentKey = ensureStudentRecord(name, gradeId);
-      localStorage.setItem(STORAGE_KEYS.currentStudent, state.currentStudentKey);
-      closeStudentPrompt();
-      renderStudentBadge();
-      renderGradeCards();
-      openGrade(gradeId);
-    }
-
-      if (!checkStudentEligibility(name, gradeId)) {
-        studentPromptError.textContent = "هذا الاسم غير مسموح له بهذا الصف حاليًا.";
         triggerShake(studentNameInput);
         triggerShake(studentGradeInput);
         return;
