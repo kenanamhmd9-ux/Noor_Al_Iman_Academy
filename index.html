@@ -99,6 +99,10 @@
       animation: wrongShake 0.42s ease;
     }
 
+    .shake-input {
+      animation: wrongShake 0.42s ease;
+    }
+
     .lock-overlay {
       backdrop-filter: blur(3px);
     }
@@ -237,7 +241,14 @@
   </div>
 
   <div id="studentPromptOverlay" class="hidden fixed inset-0 z-50 items-center justify-center bg-slate-900/50 px-4">
-    <div class="w-full max-w-md rounded-[2rem] border border-white/70 bg-white p-6 shadow-float">
+    <div class="relative w-full max-w-md rounded-[2rem] border border-white/70 bg-white p-6 shadow-float">
+      <button
+        type="button"
+        onclick="openAdminRoute()"
+        class="absolute left-4 top-4 rounded-[2rem] bg-slate-100 px-3 py-2 text-xs font-black text-slate-500 transition hover:bg-slate-200 hover:text-kidInk focus:outline-none focus:ring-4 focus:ring-slate-200"
+      >
+        الإدارة
+      </button>
       <div class="text-center">
         <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-kidBlue/15 text-5xl">👋</div>
         <h2 class="mt-4 text-2xl font-black text-kidInk">ما اسمك؟</h2>
@@ -254,6 +265,21 @@
           placeholder="اكتب اسمك هنا"
           maxlength="40"
         />
+      </label>
+      <label class="mt-4 block">
+        <span class="mb-2 block text-sm font-black text-kidInk">الصف الدراسي</span>
+        <select
+          id="studentGradeInput"
+          class="w-full rounded-[2rem] border border-slate-200 bg-white px-4 py-3 text-base font-bold text-kidInk focus:outline-none focus:ring-4 focus:ring-sky-200"
+        >
+          <option value="">اختر الصف</option>
+          <option value="1">الصف الأول</option>
+          <option value="2">الصف الثاني</option>
+          <option value="3">الصف الثالث</option>
+          <option value="4">الصف الرابع</option>
+          <option value="5">الصف الخامس</option>
+          <option value="6">الصف السادس</option>
+        </select>
       </label>
       <p id="studentPromptError" class="mt-3 min-h-[1.5rem] text-sm font-black text-rose-600"></p>
       <button
@@ -275,6 +301,7 @@
       students: "edu-platform-student-records-v2",
       currentStudent: "edu-platform-current-student-v2",
       adminAuth: "edu-platform-admin-auth-v1",
+      whitelist: "edu-platform-student-whitelist-v1",
     };
 
     const DEFAULT_VIDEO_URL = "https://www.youtube-nocookie.com/embed/aqz-KE-bpKQ?rel=0";
@@ -395,6 +422,7 @@
       videoFinished: false,
       adminGradeId: 1,
       adminSubjectId: null,
+      adminTab: "content",
       currentStudentKey: localStorage.getItem(STORAGE_KEYS.currentStudent) || "",
     };
 
@@ -410,6 +438,7 @@
     const studentBadge = document.getElementById("studentBadge");
     const studentPromptOverlay = document.getElementById("studentPromptOverlay");
     const studentNameInput = document.getElementById("studentNameInput");
+    const studentGradeInput = document.getElementById("studentGradeInput");
     const studentPromptError = document.getElementById("studentPromptError");
     const saveStudentNameButton = document.getElementById("saveStudentNameButton");
 
@@ -590,7 +619,40 @@
       localStorage.setItem(STORAGE_KEYS.students, JSON.stringify(store));
     }
 
-    function ensureStudentRecord(name) {
+    function loadWhitelist() {
+      try {
+        const rawValue = localStorage.getItem(STORAGE_KEYS.whitelist);
+        const parsed = rawValue ? JSON.parse(rawValue) : [];
+        return Array.isArray(parsed)
+          ? parsed
+              .filter((entry) => entry && typeof entry.name === "string" && String(entry.name).trim() && entry.gradeId !== undefined && entry.gradeId !== null)
+              .map((entry) => ({
+                name: String(entry.name).trim(),
+                gradeId: Number(entry.gradeId),
+              }))
+          : [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function saveWhitelist(list) {
+      const sanitized = Array.isArray(list)
+        ? list
+            .filter((entry) => entry && typeof entry.name === "string" && String(entry.name).trim() && entry.gradeId !== undefined && entry.gradeId !== null)
+            .map((entry) => ({
+              name: String(entry.name).trim(),
+              gradeId: Number(entry.gradeId),
+            }))
+        : [];
+      localStorage.setItem(STORAGE_KEYS.whitelist, JSON.stringify(sanitized));
+    }
+
+    function checkStudentEligibility(name, gradeId) {
+      return loadWhitelist().some((entry) => entry.name === String(name).trim() && String(entry.gradeId) === String(gradeId));
+    }
+
+    function ensureStudentRecord(name, gradeId = null) {
       const normalized = normalizeName(name);
       const store = loadStudentStore();
       if (!store[normalized]) {
@@ -598,9 +660,13 @@
           name: String(name).trim(),
           score: 0,
           awarded: {},
+          gradeId: gradeId ? Number(gradeId) : null,
         };
       } else {
         store[normalized].name = String(name).trim();
+        if (gradeId) {
+          store[normalized].gradeId = Number(gradeId);
+        }
       }
       saveStudentStore(store);
       return normalized;
@@ -609,6 +675,25 @@
     function getCurrentStudentRecord() {
       const store = loadStudentStore();
       return store[state.currentStudentKey] || null;
+    }
+
+    function getCurrentStudentAuthorizedGradeId() {
+      const record = getCurrentStudentRecord();
+      if (!record || !record.name || !record.gradeId) {
+        return null;
+      }
+      return checkStudentEligibility(record.name, record.gradeId) ? Number(record.gradeId) : null;
+    }
+
+    function isCurrentStudentAuthorized() {
+      return getCurrentStudentAuthorizedGradeId() !== null;
+    }
+
+    function triggerShake(element) {
+      if (!element) return;
+      element.classList.remove("shake-input");
+      void element.offsetWidth;
+      element.classList.add("shake-input");
     }
 
     function isAdminAuthenticated() {
@@ -642,7 +727,7 @@
 
     function renderStudentBadge() {
       const record = getCurrentStudentRecord();
-      if (!record || state.currentView === "admin") {
+      if (!record || !isCurrentStudentAuthorized() || state.currentView === "admin") {
         studentBadge.className = "hidden";
         studentBadge.innerHTML = "";
         return;
@@ -669,7 +754,7 @@
       `;
 
       document.getElementById("changeStudentNameButton")?.addEventListener("click", () => {
-        openStudentPrompt(record.name);
+        openStudentPrompt(record.name, record.gradeId);
       });
     }
 
@@ -701,6 +786,9 @@
 
       const store = loadStudentStore();
       const student = store[state.currentStudentKey];
+      if (!student) return { awardedNow: false, score: 0 };
+      student.awarded = student.awarded || {};
+      student.score = Number(student.score) || 0;
       const awardKey = `${state.selectedGradeId}:${state.selectedSubjectId}:${question.id}`;
       let awardedNow = false;
 
@@ -719,10 +807,13 @@
       return { awardedNow, score: student.score };
     }
 
-    function openStudentPrompt(prefill = "") {
+    function openStudentPrompt(prefill = "", prefillGradeId = "") {
       studentPromptOverlay.classList.remove("hidden");
       studentPromptOverlay.classList.add("flex");
       studentNameInput.value = prefill;
+      studentGradeInput.value = prefillGradeId ? String(prefillGradeId) : "";
+      studentNameInput.classList.remove("shake-input");
+      studentGradeInput.classList.remove("shake-input");
       studentPromptError.textContent = "";
       setTimeout(() => studentNameInput.focus(), 0);
     }
@@ -730,40 +821,70 @@
     function closeStudentPrompt() {
       studentPromptOverlay.classList.add("hidden");
       studentPromptOverlay.classList.remove("flex");
+      studentPromptError.textContent = "";
     }
 
     function saveStudentName() {
       const name = studentNameInput.value.trim();
-      if (!name) {
-        studentPromptError.textContent = "من فضلك اكتب اسمك أولًا.";
+      const gradeId = studentGradeInput.value;
+
+      if (!name || !gradeId) {
+        studentPromptError.textContent = "من فضلك اكتب الاسم واختر الصف الدراسي.";
+        if (!name) {
+          triggerShake(studentNameInput);
+        }
+        if (!gradeId) {
+          triggerShake(studentGradeInput);
+        }
         return;
       }
 
-      state.currentStudentKey = ensureStudentRecord(name);
+      if (!checkStudentEligibility(name, gradeId)) {
+        studentPromptError.textContent = "هذا الاسم غير مسموح له بهذا الصف حاليًا.";
+        triggerShake(studentNameInput);
+        triggerShake(studentGradeInput);
+        return;
+      }
+
+      state.currentStudentKey = ensureStudentRecord(name, gradeId);
       localStorage.setItem(STORAGE_KEYS.currentStudent, state.currentStudentKey);
       closeStudentPrompt();
       renderStudentBadge();
+      renderGradeCards();
+      openGrade(gradeId);
     }
 
     function ensureStudentIdentity() {
       const record = getCurrentStudentRecord();
-      if (!record && location.hash !== "#admin") {
-        openStudentPrompt();
+      if (location.hash === "#admin") {
+        return;
+      }
+      if (!record || !isCurrentStudentAuthorized()) {
+        openStudentPrompt(record?.name || "", record?.gradeId || "");
       }
     }
 
     function renderGradeCards() {
+      const authorizedGradeId = getCurrentStudentAuthorizedGradeId();
       gradesGrid.innerHTML = catalog.grades.map(
-        (grade) => `
+        (grade) => {
+          const isLocked = authorizedGradeId !== null && Number(grade.id) !== Number(authorizedGradeId);
+          return `
           <button
             type="button"
-            class="card-pop group relative flex flex-col items-center justify-center overflow-hidden rounded-[2.5rem] bg-gradient-to-br ${grade.gradient} p-8 text-center shadow-float focus:outline-none focus:ring-4 focus:ring-sky-200"
+            class="card-pop group relative flex flex-col items-center justify-center overflow-hidden rounded-[2.5rem] bg-gradient-to-br ${grade.gradient} p-8 text-center shadow-float focus:outline-none focus:ring-4 focus:ring-sky-200 ${isLocked ? "grayscale opacity-55 cursor-not-allowed" : ""}"
             data-grade-id="${grade.id}"
             aria-label="افتح ${escapeHtml(grade.label)}"
+            ${isLocked ? "disabled" : ""}
           >
             <div class="absolute right-6 top-6 text-kidInk/10">
                 <svg class="h-10 w-10" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
             </div>
+            ${isLocked ? `
+              <div class="absolute left-5 top-5 flex h-12 w-12 items-center justify-center rounded-full bg-white/90 text-2xl shadow-sm">
+                🔒
+              </div>
+            ` : ""}
 
             <div class="mb-4 rounded-3xl bg-white/40 p-5 shadow-sm backdrop-blur-sm transition-transform group-hover:scale-110">
               ${getIconSvg(grade.icon, "h-20 w-20")}
@@ -778,7 +899,8 @@
               <span class="text-2xl">&larr;</span>
             </div>
           </button>
-        `
+        `;
+        }
       ).join("");
 
       document.querySelectorAll("[data-grade-id]").forEach((button) => {
@@ -786,6 +908,10 @@
       });
     }
     function openGrade(gradeId) {
+      const authorizedGradeId = getCurrentStudentAuthorizedGradeId();
+      if (authorizedGradeId !== null && Number(gradeId) !== Number(authorizedGradeId)) {
+        return;
+      }
       state.selectedGradeId = Number(gradeId);
       state.selectedSubjectId = null;
       renderGradeView();
@@ -1670,6 +1796,505 @@ window.switchAdminTab = function(tabName) {
         </tr>
       `).join('');
     }
+    function getAdminTabButtonClass(isActive) {
+      return isActive
+        ? "rounded-xl bg-kidBlue text-white px-5 py-2.5 text-sm font-black shadow-sm transition"
+        : "rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 px-5 py-2.5 text-sm font-black transition";
+    }
+
+    function renderAdminDashboard() {
+      const grade = getAdminGrade();
+      const subject = getAdminSubject();
+      const activeTab = ["content", "students", "permissions"].includes(state.adminTab) ? state.adminTab : "content";
+
+      adminView.innerHTML = `
+        <div class="space-y-6">
+          <div class="overflow-hidden rounded-[2rem] border border-white/70 bg-white/90 p-6 shadow-float">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <p class="inline-flex rounded-full bg-kidPink/15 px-4 py-2 text-sm font-black text-kidInk">محتوى المنصة</p>
+                <h2 class="mt-3 text-3xl font-black text-kidInk">لوحة الإدارة</h2>
+                <p class="mt-2 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">
+                  من هنا يمكنك إدارة المواد الخاصة بكل صف، وتحديث روابط الفيديو، وإضافة الأسئلة والخيارات، والتحكم في صلاحيات الطلبة.
+                </p>
+              </div>
+              <button
+                id="adminLogoutButton"
+                type="button"
+                class="rounded-2xl bg-slate-100 px-4 py-3 text-sm font-black text-kidInk transition hover:bg-slate-200 focus:outline-none focus:ring-4 focus:ring-slate-200"
+              >
+                تسجيل خروج الإدارة
+              </button>
+            </div>
+            <div class="mt-4 flex flex-wrap gap-2 border-b border-slate-200 pb-4">
+              <button onclick="switchAdminTab('content')" id="tabContentBtn" class="${getAdminTabButtonClass(activeTab === "content")}">إدارة المحتوى</button>
+              <button onclick="switchAdminTab('students')" id="tabStudentsBtn" class="${getAdminTabButtonClass(activeTab === "students")}">سجل الطلبة</button>
+              <button onclick="switchAdminTab('permissions')" id="tabPermissionsBtn" class="${getAdminTabButtonClass(activeTab === "permissions")}">صلاحيات الطلبة</button>
+            </div>
+          </div>
+
+          <div id="adminContentSection" class="${activeTab === "content" ? "grid" : "hidden"} gap-6 xl:grid-cols-[0.88fr_1.12fr]">
+            <aside class="space-y-6">
+              <div class="rounded-[2rem] border border-white/70 bg-white/85 p-5 shadow-float">
+                <h3 class="text-2xl font-black text-kidInk">اختيار الصف</h3>
+                <label class="mt-4 block">
+                  <span class="mb-2 block text-sm font-black text-kidInk">الصف الدراسي</span>
+                  <select
+                    id="adminGradeSelect"
+                    class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base font-bold text-kidInk focus:outline-none focus:ring-4 focus:ring-sky-200"
+                  >
+                    ${catalog.grades.map((item) => `<option value="${item.id}" ${item.id === grade.id ? "selected" : ""}>${escapeHtml(item.label)}</option>`).join("")}
+                  </select>
+                </label>
+              </div>
+
+              <div class="rounded-[2rem] border border-white/70 bg-white/85 p-5 shadow-float">
+                <div class="flex items-center justify-between gap-3">
+                  <h3 class="text-2xl font-black text-kidInk">مواد ${escapeHtml(grade.label)}</h3>
+                  <button
+                    id="addSubjectButton"
+                    type="button"
+                    class="rounded-2xl bg-gradient-to-br from-kidBlue to-kidGreen px-4 py-3 text-sm font-black text-kidInk transition hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-sky-200"
+                  >
+                    + إضافة مادة
+                  </button>
+                </div>
+                <div class="mt-5 space-y-4">
+                  ${grade.subjects.length === 0 ? `
+                    <div class="rounded-[1.75rem] bg-slate-50 p-5 text-center">
+                      <div class="text-5xl">📘</div>
+                      <p class="mt-3 text-lg font-black text-kidInk">لا توجد مواد بعد</p>
+                    </div>
+                  ` : grade.subjects.map((item) => `
+                    <article class="rounded-[1.75rem] border ${item.id === state.adminSubjectId ? "border-kidBlue bg-kidBlue/5" : "border-slate-100 bg-slate-50/90"} p-4 shadow-sm">
+                      <div class="flex items-center justify-between gap-3">
+                        <button
+                          type="button"
+                          data-select-subject="${item.id}"
+                          class="text-right text-lg font-black text-kidInk"
+                        >
+                          ${escapeHtml(item.label)}
+                        </button>
+                        <button
+                          type="button"
+                          data-delete-subject="${item.id}"
+                          class="rounded-2xl bg-rose-100 px-3 py-2 text-xs font-black text-rose-700 transition hover:bg-rose-200 focus:outline-none focus:ring-4 focus:ring-rose-200"
+                        >
+                          حذف
+                        </button>
+                      </div>
+                      <label class="mt-3 block">
+                        <span class="mb-2 block text-xs font-black text-slate-500">اسم المادة</span>
+                        <input
+                          type="text"
+                          value="${escapeHtml(item.label)}"
+                          data-subject-label="${item.id}"
+                          class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-kidInk focus:outline-none focus:ring-4 focus:ring-sky-200"
+                        />
+                      </label>
+                      <label class="mt-3 block">
+                        <span class="mb-2 block text-xs font-black text-slate-500">رابط الفيديو</span>
+                        <input
+                          type="text"
+                          value="${escapeHtml(item.videoUrl)}"
+                          data-subject-video="${item.id}"
+                          class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-kidInk focus:outline-none focus:ring-4 focus:ring-sky-200"
+                        />
+                      </label>
+                    </article>
+                  `).join("")}
+                </div>
+              </div>
+            </aside>
+
+            <section class="rounded-[2rem] border border-white/70 bg-white/85 p-5 shadow-float sm:p-6">
+              ${
+                !subject
+                  ? `
+                    <div class="rounded-[1.75rem] bg-slate-50 p-6 text-center">
+                      <div class="text-5xl">🛰️</div>
+                      <p class="mt-3 text-xl font-black text-kidInk">اختر مادة من القائمة</p>
+                      <p class="mt-2 text-sm font-bold text-slate-500">ثم ابدأ بإدارة أسئلتها وفيديوها.</p>
+                    </div>
+                  `
+                  : `
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <h3 class="text-2xl font-black text-kidInk">أسئلة ${escapeHtml(subject.label)}</h3>
+                        <p class="mt-2 text-sm leading-7 text-slate-500">يمكنك إضافة أي عدد من الأسئلة والخيارات لهذه المادة.</p>
+                      </div>
+                      <button
+                        id="addQuestionButton"
+                        type="button"
+                        class="rounded-2xl bg-gradient-to-br from-kidYellow to-kidOrange px-4 py-3 text-sm font-black text-kidInk transition hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-yellow-200"
+                      >
+                        + إضافة سؤال
+                      </button>
+                    </div>
+
+                    <div class="mt-6 space-y-4">
+                      ${subject.questions.length === 0 ? `
+                        <div class="rounded-[1.75rem] bg-slate-50 p-5 text-center">
+                          <div class="text-5xl">➕</div>
+                          <p class="mt-3 text-lg font-black text-kidInk">لا توجد أسئلة بعد</p>
+                        </div>
+                      ` : subject.questions.map((question, questionIndex) => renderAdminQuestionCard(question, questionIndex)).join("")}
+                    </div>
+                  `
+              }
+            </section>
+          </div>
+
+          <div id="adminStudentsSection" class="${activeTab === "students" ? "overflow-x-auto" : "hidden"} rounded-[2rem] border border-white/70 bg-white/90 p-5 shadow-float sm:p-6">
+            <table class="w-full min-w-[600px] border-collapse text-right">
+              <thead>
+                <tr class="bg-slate-50 text-sm text-slate-500">
+                  <th class="rounded-tr-xl border-b p-4 font-bold">اسم الطالب</th>
+                  <th class="border-b p-4 text-center font-bold">عدد النقاط المكتسبة</th>
+                  <th class="rounded-tl-xl border-b p-4 text-center font-bold">مستوى التفاعل</th>
+                </tr>
+              </thead>
+              <tbody id="adminStudentsTableBody" class="font-bold text-kidInk"></tbody>
+            </table>
+          </div>
+
+          <div id="adminPermissionsSection" class="${activeTab === "permissions" ? "space-y-6" : "hidden"}">
+            <div class="rounded-[2rem] border border-white/70 bg-white/90 p-5 shadow-float sm:p-6">
+              <div>
+                <h3 class="text-2xl font-black text-kidInk">صلاحيات الطلبة</h3>
+                <p class="mt-2 text-sm leading-7 text-slate-500">أضف الاسم والصف المسموح له بالدخول، ثم احفظه في القائمة.</p>
+              </div>
+              <div class="mt-5 grid gap-4 lg:grid-cols-[1fr_220px_auto]">
+                <label class="block">
+                  <span class="mb-2 block text-sm font-black text-kidInk">اسم الطالب</span>
+                  <input
+                    id="whitelistNameInput"
+                    type="text"
+                    class="w-full rounded-[2rem] border border-slate-200 bg-white px-4 py-3 text-base font-bold text-kidInk focus:outline-none focus:ring-4 focus:ring-sky-200"
+                    placeholder="اكتب الاسم كما سيُستخدم"
+                  />
+                </label>
+                <label class="block">
+                  <span class="mb-2 block text-sm font-black text-kidInk">الصف الدراسي</span>
+                  <select
+                    id="whitelistGradeSelect"
+                    class="w-full rounded-[2rem] border border-slate-200 bg-white px-4 py-3 text-base font-bold text-kidInk focus:outline-none focus:ring-4 focus:ring-sky-200"
+                  >
+                    <option value="">اختر الصف</option>
+                    ${catalog.grades.map((item) => `<option value="${item.id}">${escapeHtml(item.label)}</option>`).join("")}
+                  </select>
+                </label>
+                <div class="flex items-end">
+                  <button
+                    id="addWhitelistButton"
+                    type="button"
+                    class="w-full rounded-[2rem] bg-gradient-to-br from-kidBlue to-kidGreen px-5 py-3 text-base font-black text-kidInk transition hover:scale-[1.01] focus:outline-none focus:ring-4 focus:ring-sky-200"
+                  >
+                    إضافة
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="overflow-x-auto rounded-[2rem] border border-white/70 bg-white/90 p-5 shadow-float sm:p-6">
+              <table class="w-full min-w-[560px] border-collapse text-right">
+                <thead>
+                  <tr class="bg-slate-50 text-sm text-slate-500">
+                    <th class="rounded-tr-xl border-b p-4 font-bold">اسم الطالب</th>
+                    <th class="border-b p-4 text-center font-bold">الصف</th>
+                    <th class="rounded-tl-xl border-b p-4 text-center font-bold">إجراء</th>
+                  </tr>
+                </thead>
+                <tbody id="adminWhitelistTableBody" class="font-bold text-kidInk"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+
+      bindAdminEvents();
+      renderStudentsTable();
+      renderWhitelistTable();
+    }
+
+    function bindAdminEvents() {
+      adminView.querySelector("#adminLogoutButton")?.addEventListener("click", () => {
+        localStorage.removeItem(STORAGE_KEYS.adminAuth);
+        location.hash = "";
+        goHome();
+      });
+
+      adminView.querySelector("#adminGradeSelect")?.addEventListener("change", (event) => {
+        state.adminGradeId = Number(event.target.value);
+        const grade = getAdminGrade();
+        state.adminSubjectId = grade.subjects[0]?.id || null;
+        renderAdminDashboard();
+      });
+
+      adminView.querySelector("#addSubjectButton")?.addEventListener("click", () => {
+        const grade = getAdminGrade();
+        const newSubject = {
+          id: createId("subject"),
+          key: createId("custom"),
+          label: "مادة جديدة",
+          icon: subjectIconFromKey("generic", "مادة جديدة"),
+          videoUrl: DEFAULT_VIDEO_URL,
+          questions: [],
+        };
+        grade.subjects.push(newSubject);
+        state.adminSubjectId = newSubject.id;
+        persistCatalog();
+        renderAdminDashboard();
+      });
+
+      adminView.querySelectorAll("[data-select-subject]").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.adminSubjectId = button.dataset.selectSubject;
+          renderAdminDashboard();
+        });
+      });
+
+      adminView.querySelectorAll("[data-delete-subject]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const grade = getAdminGrade();
+          const subjectId = button.dataset.deleteSubject;
+          grade.subjects = grade.subjects.filter((item) => item.id !== subjectId);
+          state.adminSubjectId = grade.subjects[0]?.id || null;
+          persistCatalog();
+          renderAdminDashboard();
+        });
+      });
+
+      adminView.querySelectorAll("[data-subject-label]").forEach((input) => {
+        input.addEventListener("input", (event) => {
+          const subject = getAdminGrade().subjects.find((item) => item.id === event.target.dataset.subjectLabel);
+          subject.label = event.target.value;
+          subject.icon = subjectIconFromKey(subject.key, subject.label);
+          persistCatalog();
+        });
+      });
+
+      adminView.querySelectorAll("[data-subject-video]").forEach((input) => {
+        input.addEventListener("input", (event) => {
+          const subject = getAdminGrade().subjects.find((item) => item.id === event.target.dataset.subjectVideo);
+          subject.videoUrl = event.target.value;
+          persistCatalog();
+        });
+      });
+
+      adminView.querySelector("#addQuestionButton")?.addEventListener("click", () => {
+        const subject = getAdminSubject();
+        subject.questions.push({
+          id: createId("question"),
+          text: "سؤال جديد",
+          options: ["الخيار الأول", "الخيار الثاني"],
+          correctIndex: 0,
+        });
+        persistCatalog();
+        renderAdminDashboard();
+      });
+
+      adminView.querySelectorAll("[data-question-text]").forEach((textarea) => {
+        textarea.addEventListener("input", (event) => {
+          const question = getAdminSubject().questions.find((item) => item.id === event.target.dataset.questionText);
+          question.text = event.target.value;
+          persistCatalog();
+        });
+      });
+
+      adminView.querySelectorAll("[data-option-text]").forEach((input) => {
+        input.addEventListener("input", (event) => {
+          const question = getAdminSubject().questions.find((item) => item.id === event.target.dataset.optionText);
+          const optionIndex = Number(event.target.dataset.optionIndex);
+          question.options[optionIndex] = event.target.value;
+          persistCatalog();
+        });
+      });
+
+      adminView.querySelectorAll("[data-correct-option]").forEach((radio) => {
+        radio.addEventListener("change", (event) => {
+          const question = getAdminSubject().questions.find((item) => item.id === event.target.dataset.correctOption);
+          question.correctIndex = Number(event.target.value);
+          persistCatalog();
+        });
+      });
+
+      adminView.querySelectorAll("[data-delete-question]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const subject = getAdminSubject();
+          subject.questions = subject.questions.filter((item) => item.id !== button.dataset.deleteQuestion);
+          persistCatalog();
+          renderAdminDashboard();
+        });
+      });
+
+      adminView.querySelectorAll("[data-add-option]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const question = getAdminSubject().questions.find((item) => item.id === button.dataset.addOption);
+          question.options.push(`خيار ${question.options.length + 1}`);
+          persistCatalog();
+          renderAdminDashboard();
+        });
+      });
+
+      adminView.querySelectorAll("[data-delete-option]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const question = getAdminSubject().questions.find((item) => item.id === button.dataset.deleteOption);
+          if (question.options.length <= 2) return;
+          const optionIndex = Number(button.dataset.optionIndex);
+          question.options.splice(optionIndex, 1);
+          if (question.correctIndex === optionIndex) {
+            question.correctIndex = 0;
+          } else if (question.correctIndex > optionIndex) {
+            question.correctIndex -= 1;
+          }
+          persistCatalog();
+          renderAdminDashboard();
+        });
+      });
+
+      adminView.querySelector("#addWhitelistButton")?.addEventListener("click", () => {
+        const nameInput = adminView.querySelector("#whitelistNameInput");
+        const gradeSelect = adminView.querySelector("#whitelistGradeSelect");
+        const name = String(nameInput?.value || "").trim();
+        const gradeId = gradeSelect?.value || "";
+        if (!name || !gradeId) {
+          if (!name) triggerShake(nameInput);
+          if (!gradeId) triggerShake(gradeSelect);
+          return;
+        }
+
+        const whitelist = loadWhitelist();
+        const exists = whitelist.some((entry) => entry.name === name && String(entry.gradeId) === String(gradeId));
+        if (!exists) {
+          whitelist.push({ name, gradeId: Number(gradeId) });
+          saveWhitelist(whitelist);
+        }
+
+        nameInput.value = "";
+        gradeSelect.value = "";
+        renderWhitelistTable();
+      });
+    }
+
+    window.switchAdminTab = function(tabName) {
+      state.adminTab = tabName;
+      const contentSection = document.getElementById("adminContentSection");
+      const studentsSection = document.getElementById("adminStudentsSection");
+      const permissionsSection = document.getElementById("adminPermissionsSection");
+      if (!contentSection || !studentsSection || !permissionsSection) return;
+
+      contentSection.classList.toggle("hidden", tabName !== "content");
+      studentsSection.classList.toggle("hidden", tabName !== "students");
+      if (tabName === "students") {
+        studentsSection.classList.add("overflow-x-auto");
+      }
+      permissionsSection.classList.toggle("hidden", tabName !== "permissions");
+
+      const contentBtn = document.getElementById("tabContentBtn");
+      const studentsBtn = document.getElementById("tabStudentsBtn");
+      const permissionsBtn = document.getElementById("tabPermissionsBtn");
+      if (contentBtn) contentBtn.className = getAdminTabButtonClass(tabName === "content");
+      if (studentsBtn) studentsBtn.className = getAdminTabButtonClass(tabName === "students");
+      if (permissionsBtn) permissionsBtn.className = getAdminTabButtonClass(tabName === "permissions");
+
+      if (tabName === "students") {
+        renderStudentsTable();
+      }
+      if (tabName === "permissions") {
+        renderWhitelistTable();
+      }
+    };
+
+    function renderStudentsTable() {
+      const tbody = document.getElementById("adminStudentsTableBody");
+      if (!tbody) return;
+      const store = loadStudentStore();
+      const students = Object.entries(store)
+        .map(([key, student]) => ({ key, ...student }))
+        .sort((a, b) => b.score - a.score);
+
+      if (students.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" class="p-8 text-center text-slate-500 font-bold">لا يوجد طلبة مسجلين أو نقاط حتى الآن.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = students.map((student) => `
+        <tr class="border-b border-slate-100 transition-colors hover:bg-slate-50">
+          <td class="p-4 text-lg">${escapeHtml(student.name)}</td>
+          <td class="p-4 text-center">
+            <div class="flex flex-col items-center gap-2">
+              <span class="rounded-full bg-kidYellow/40 px-4 py-1.5 text-sm font-black text-kidInk">⭐ ${student.score} نقطة</span>
+              <button
+                type="button"
+                data-reset-student="${escapeHtml(student.key)}"
+                class="rounded-2xl bg-slate-100 px-3 py-2 text-xs font-black text-slate-600 transition hover:bg-slate-200 focus:outline-none focus:ring-4 focus:ring-slate-200"
+              >
+                🔄 إعادة تعيين النقاط
+              </button>
+            </div>
+          </td>
+          <td class="p-4 text-center">
+            <div class="mx-auto h-2.5 w-full max-w-[120px] overflow-hidden rounded-full bg-slate-100">
+              <div class="h-full rounded-full bg-kidGreen transition-all duration-500" style="width: ${Math.min(100, student.score * 10)}%"></div>
+            </div>
+          </td>
+        </tr>
+      `).join("");
+
+      tbody.querySelectorAll("[data-reset-student]").forEach((button) => {
+        button.addEventListener("click", () => {
+          if (!confirm("هل تريد إعادة تعيين نقاط هذا الطالب؟")) {
+            return;
+          }
+          const store = loadStudentStore();
+          const student = store[button.dataset.resetStudent];
+          if (!student) return;
+          student.score = 0;
+          student.awarded = {};
+          saveStudentStore(store);
+          renderStudentsTable();
+          renderStudentBadge();
+        });
+      });
+    }
+
+    function renderWhitelistTable() {
+      const tbody = document.getElementById("adminWhitelistTableBody");
+      if (!tbody) return;
+      const whitelist = loadWhitelist();
+
+      if (whitelist.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" class="p-8 text-center text-slate-500 font-bold">لا توجد صلاحيات مضافة حتى الآن.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = whitelist.map((entry, index) => `
+        <tr class="border-b border-slate-100 transition-colors hover:bg-slate-50">
+          <td class="p-4 text-lg">${escapeHtml(entry.name)}</td>
+          <td class="p-4 text-center">${escapeHtml(getGradeById(entry.gradeId)?.label || `الصف ${entry.gradeId}`)}</td>
+          <td class="p-4 text-center">
+            <button
+              type="button"
+              data-remove-whitelist="${index}"
+              class="rounded-2xl bg-rose-100 px-3 py-2 text-xs font-black text-rose-700 transition hover:bg-rose-200 focus:outline-none focus:ring-4 focus:ring-rose-200"
+            >
+              إزالة
+            </button>
+          </td>
+        </tr>
+      `).join("");
+
+      tbody.querySelectorAll("[data-remove-whitelist]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const whitelist = loadWhitelist();
+          whitelist.splice(Number(button.dataset.removeWhitelist), 1);
+          saveWhitelist(whitelist);
+          renderWhitelistTable();
+        });
+      });
+    }
+
     function switchView(viewName) {
       state.currentView = viewName;
       homeView.classList.toggle("hidden", viewName !== "home");
@@ -1692,6 +2317,7 @@ window.switchAdminTab = function(tabName) {
       state.currentView = "home";
       state.selectedGradeId = null;
       state.selectedSubjectId = null;
+      renderGradeCards();
       switchView("home");
       updateHeader();
       ensureStudentIdentity();
@@ -1878,6 +2504,11 @@ window.switchAdminTab = function(tabName) {
     });
     saveStudentNameButton.addEventListener("click", saveStudentName);
     studentNameInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        saveStudentName();
+      }
+    });
+    studentGradeInput.addEventListener("keydown", (event) => {
       if (event.key === "Enter") {
         saveStudentName();
       }
