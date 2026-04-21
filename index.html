@@ -306,7 +306,6 @@
 
   <script>
     // غيّر كلمة المرور الافتراضية هنا عند الحاجة.
-    const ADMIN_PASSWORD = "Dr.yahia**amer";
     // --- إعدادات الربط بقاعدة بيانات Supabase ---
     const supabaseUrl = 'https://glbjeszhpfxtevwhcrfi.supabase.co';
     const supabaseAnonKey = 'sb_publishable_OPXzN6_HdE7mrbAhIi_eIQ_196y9Q07';
@@ -483,11 +482,14 @@
     }
 
     function normalizeName(value) {
-      return String(value || "").trim().replace(/\s+/g, " ").toLowerCase();
-    }
-
-    function isDirectVideo(url) {
-      return /\.(mp4|webm|ogg)(\?.*)?$/i.test(url || "");
+      return String(value || "")
+        .trim()
+        .replace(/\s+/g, " ") 
+        .replace(/[أإآ]/g, "ا") 
+        .replace(/ة/g, "ه") 
+        .replace(/ى/g, "ي") 
+        .replace(/[\u064B-\u065F]/g, "") 
+        .toLowerCase();
     }
 
     function normalizeYoutubeUrl(url) {
@@ -633,17 +635,23 @@
       try {
         const { data, error } = await supabaseClient.from('students_whitelist')
           .select('*')
-          .eq('name', String(name).trim())
           .eq('grade_id', Number(gradeId))
           .eq('secret_code', String(secretCode).trim());
+
         if (error) throw error;
-        return data && data.length > 0;
+        if (!data || data.length === 0) return false;
+
+        const normalizedInput = normalizeName(name);
+        const isMatch = data.some(student => 
+          normalizeName(student.name) === normalizedInput
+        );
+
+        return isMatch;
       } catch (err) {
         console.error("خطأ في الاتصال بقاعدة البيانات:", err);
         return false;
       }
     }
-
     async function fetchWhitelistFromDB() {
       try {
         const { data, error } = await supabaseClient.from('students_whitelist').select('*').order('grade_id', { ascending: true });
@@ -1391,15 +1399,33 @@
         </div>
       `;
 
-      adminView.querySelector("#adminLoginButton")?.addEventListener("click", () => {
-        const value = adminView.querySelector("#adminPasswordInput")?.value || "";
-        if (value === ADMIN_PASSWORD) {
-          localStorage.setItem(STORAGE_KEYS.adminAuth, "1");
-          renderAdminDashboard();
-          updateHeader();
-        } else {
-          renderAdminAuthView("كلمة المرور غير صحيحة.");
+     adminView.querySelector("#adminLoginButton")?.addEventListener("click", async () => {
+        const inputPass = adminView.querySelector("#adminPasswordInput")?.value || "";
+        const loginBtn = adminView.querySelector("#adminLoginButton");
+        const errorText = adminView.querySelector("#adminAuthError");
+        
+        loginBtn.textContent = "جاري التحقق...";
+        loginBtn.disabled = true;
+
+        try {
+          const { data, error } = await supabaseClient.from('platform_metadata')
+            .select('data')
+            .eq('key', 'admin_auth')
+            .single();
+
+          if (!error && data && data.data && data.data.password === inputPass) {
+            localStorage.setItem(STORAGE_KEYS.adminAuth, "1");
+            renderAdminDashboard();
+            updateHeader();
+          } else {
+            errorText.textContent = "كلمة المرور غير صحيحة.";
+          }
+        } catch(err) {
+          errorText.textContent = "حدث خطأ في الاتصال بالسحابة.";
         }
+
+        loginBtn.textContent = "دخول لوحة الإدارة";
+        loginBtn.disabled = false;
       });
     }
 
