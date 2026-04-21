@@ -2216,7 +2216,6 @@ window.switchAdminTab = function(tabName) {
             const randomSecretCode = Math.floor(1000 + Math.random() * 9000).toString();
             await supabaseClient.from('students_whitelist').insert([{ name: name, grade_id: Number(gradeId), secret_code: randomSecretCode }]);
             nameInput.value = "";
-            gradeSelect.value = "";
           } catch (error) {
             console.error("خطأ أثناء الإضافة:", error);
             alert("حدث خطأ أثناء الاتصال بقاعدة البيانات.");
