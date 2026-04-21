@@ -492,20 +492,14 @@
 
     function normalizeYoutubeUrl(url) {
       try {
-        const parsed = new URL(url, window.location.href);
-        const host = parsed.hostname.toLowerCase();
-        if (host.includes("youtu.be")) {
-          const videoId = parsed.pathname.replace("/", "");
-          return videoId ? `https://www.youtube-nocookie.com/embed/${videoId}` : url;
+        // موتور ذكي (Regex) لاصطياد الـ ID من أي رابط يوتيوب (عادي، شورتس، لايف، موبايل)
+        const match = String(url).match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/|live\/))([\w-]{11})/);
+        
+        if (match && match[1]) {
+          // تحويله لرابط Embed آمن للأطفال (بدون كوكيز وبدون اقتراحات قنوات أخرى في النهاية)
+          return `https://www.youtube-nocookie.com/embed/${match[1]}?rel=0`;
         }
-        if (host.includes("youtube.com")) {
-          if (parsed.pathname.includes("/embed/")) {
-            return url;
-          }
-          const videoId = parsed.searchParams.get("v");
-          return videoId ? `https://www.youtube-nocookie.com/embed/${videoId}` : url;
-        }
-        return url;
+        return url; // لو مش رابط يوتيوب، هيرجعه زي ما هو
       } catch (error) {
         return url;
       }
