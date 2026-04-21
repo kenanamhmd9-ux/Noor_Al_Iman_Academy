@@ -871,29 +871,6 @@
       openGrade(gradeId);
     }
 
-      saveStudentNameButton.textContent = "جاري التحقق من السحابة...";
-      saveStudentNameButton.disabled = true;
-
-      const isEligible = await checkStudentEligibilityFromDB(name, gradeId);
-
-      saveStudentNameButton.textContent = "حفظ الاسم والبدء";
-      saveStudentNameButton.disabled = false;
-
-      if (!isEligible) {
-        studentPromptError.textContent = "عفواً! هذا الاسم غير مسجل بهذا الصف في قاعدة البيانات.";
-        triggerShake(studentNameInput);
-        triggerShake(studentGradeInput);
-        return;
-      }
-
-      state.currentStudentKey = ensureStudentRecord(name, gradeId);
-      localStorage.setItem(STORAGE_KEYS.currentStudent, state.currentStudentKey);
-      closeStudentPrompt();
-      renderStudentBadge();
-      renderGradeCards();
-      openGrade(gradeId);
-    }
-
     function ensureStudentIdentity() {
       const record = getCurrentStudentRecord();
       if (location.hash === "#admin") {
@@ -2348,23 +2325,6 @@ window.switchAdminTab = function(tabName) {
             <button type="button" data-remove-whitelist="${entry.id}" class="rounded-2xl bg-rose-100 px-3 py-2 text-xs font-black text-rose-700 transition hover:bg-rose-200 focus:outline-none focus:ring-4 focus:ring-rose-200">إزالة</button>
           </td>
         </tr>
-      `).join("");
-
-      tbody.querySelectorAll("[data-remove-whitelist]").forEach((button) => {
-        button.addEventListener("click", async () => {
-          const id = button.dataset.removeWhitelist;
-          button.textContent = "جاري الحذف...";
-          button.disabled = true;
-          try {
-            await supabaseClient.from('students_whitelist').delete().eq('id', id);
-            renderWhitelistTable();
-          } catch(err) { console.error("Error deleting:", err); }
-        });
-      });
-    }
-
-      tbody.innerHTML = whitelist.map((entry) => `
-        <tr class="border-b border-slate-100 transition-colors hover:bg-slate-50"><td class="p-4 text-lg">${escapeHtml(entry.name)}</td><td class="p-4 text-center">${escapeHtml(getGradeById(entry.grade_id)?.label || `الصف ${entry.grade_id}`)}</td><td class="p-4 text-center"><button type="button" data-remove-whitelist="${entry.id}" class="rounded-2xl bg-rose-100 px-3 py-2 text-xs font-black text-rose-700 transition hover:bg-rose-200 focus:outline-none focus:ring-4 focus:ring-rose-200">إزالة</button></td></tr>
       `).join("");
 
       tbody.querySelectorAll("[data-remove-whitelist]").forEach((button) => {
