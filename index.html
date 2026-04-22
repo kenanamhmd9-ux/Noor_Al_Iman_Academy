@@ -492,6 +492,10 @@
         .toLowerCase();
     }
 
+    function isDirectVideo(url) {
+      return /\.(mp4|webm|ogg)(\?.*)?$/i.test(url || "");
+    }
+    
     function normalizeYoutubeUrl(url) {
       try {
         // موتور ذكي (Regex) لاصطياد الـ ID من أي رابط يوتيوب (عادي، شورتس، لايف، موبايل)
