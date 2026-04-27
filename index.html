@@ -434,11 +434,13 @@
       currentView: "home",
       selectedGradeId: null,
       selectedSubjectId: null,
+      selectedLessonId: null, 
       answers: [],
       resultShown: false,
       videoFinished: false,
       adminGradeId: 1,
       adminSubjectId: null,
+      adminLessonId: null, 
       adminTab: "content",
       currentStudentKey: localStorage.getItem(STORAGE_KEYS.currentStudent) || "",
     };
@@ -573,13 +575,32 @@
     function normalizeSubject(subject) {
       const label = String(subject?.label ?? "مادة جديدة");
       const key = String(subject?.key ?? createId("subject-key"));
+      
+      let lessons = Array.isArray(subject?.lessons) ? subject.lessons : [];
+      if (lessons.length === 0) {
+        if (subject?.videoUrl || (subject?.questions && subject.questions.length > 0)) {
+           lessons.push({
+               id: createId("lesson"),
+               title: "الدرس الأول",
+               videoUrl: subject.videoUrl || DEFAULT_VIDEO_URL,
+               questions: Array.isArray(subject.questions) ? subject.questions.map(normalizeQuestion) : []
+           });
+        }
+      } else {
+        lessons = lessons.map(lesson => ({
+            id: lesson.id || createId("lesson"),
+            title: lesson.title || "درس جديد",
+            videoUrl: lesson.videoUrl || DEFAULT_VIDEO_URL,
+            questions: Array.isArray(lesson.questions) ? lesson.questions.map(normalizeQuestion) : []
+        }));
+      }
+
       return {
         id: subject?.id || createId("subject"),
         key,
         label,
         icon: subject?.icon || subjectIconFromKey(key, label),
-        videoUrl: String(subject?.videoUrl || DEFAULT_VIDEO_URL),
-        questions: Array.isArray(subject?.questions) ? subject.questions.map(normalizeQuestion) : [],
+        lessons: lessons,
       };
     }
 
@@ -730,6 +751,17 @@
 
     function getSelectedSubject() {
       return getSubjectById(state.selectedGradeId, state.selectedSubjectId);
+    }
+    function getSelectedLesson() {
+      const subject = getSelectedSubject();
+      if (!subject || !subject.lessons || subject.lessons.length === 0) return null;
+      return subject.lessons.find(l => l.id === state.selectedLessonId) || subject.lessons[0];
+    }
+
+    function getAdminLesson() {
+      const subject = getAdminSubject();
+      if (!subject || !subject.lessons || subject.lessons.length === 0) return null;
+      return subject.lessons.find(l => l.id === state.adminLessonId) || subject.lessons[0];
     }
 
     function getAdminGrade() {
@@ -1017,16 +1049,30 @@
 
     function openSubject(subjectId) {
       state.selectedSubjectId = subjectId;
+      const subject = getSelectedSubject();
+      // فتح الدرس الأول كافتراضي
+      state.selectedLessonId = subject?.lessons?.length > 0 ? subject.lessons[0].id : null;
+      
       state.videoFinished = false;
       state.resultShown = false;
-      const subject = getSelectedSubject();
-      state.answers = Array(subject.questions.length).fill(null);
+      const lesson = getSelectedLesson();
+      state.answers = Array(lesson ? lesson.questions.length : 0).fill(null);
+      
       renderQuizView();
       switchView("quiz");
       updateHeader();
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
+    // دالة جديدة لتغيير الدرس لما الطالب يضغط على زراير الدروس
+    window.selectStudentLesson = function(lessonId) {
+      state.selectedLessonId = lessonId;
+      state.videoFinished = false;
+      state.resultShown = false;
+      const lesson = getSelectedLesson();
+      state.answers = Array(lesson ? lesson.questions.length : 0).fill(null);
+      renderQuizView();
+    };
     function renderVideoPlayer(subject) {
       const rawUrl = String(subject.videoUrl || "").trim();
       if (!rawUrl) {
