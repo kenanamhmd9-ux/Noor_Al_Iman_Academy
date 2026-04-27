@@ -1483,6 +1483,8 @@
     function renderAdminDashboard() {
       const grade = getAdminGrade();
       const subject = getAdminSubject();
+      const lesson = getAdminLesson();
+      const activeTab = ["content", "students", "permissions"].includes(state.adminTab) ? state.adminTab : "content";
 
       adminView.innerHTML = `
         <div class="space-y-6">
@@ -1492,7 +1494,7 @@
                 <p class="inline-flex rounded-full bg-kidPink/15 px-4 py-2 text-sm font-black text-kidInk">محتوى المنصة</p>
                 <h2 class="mt-3 text-3xl font-black text-kidInk">لوحة الإدارة</h2>
                 <p class="mt-2 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">
-                  من هنا يمكنك إدارة المواد الخاصة بكل صف، وتحديث روابط الفيديو، وإضافة الأسئلة والخيارات وحذفها.
+                  من هنا يمكنك إدارة المواد والدروس والفيديوهات والأسئلة الخاصة بكل صف، وصلاحيات الطلبة.
                 </p>
               </div>
               <button
@@ -1503,23 +1505,20 @@
                 تسجيل خروج الإدارة
               </button>
             </div>
-            </div>
-            <div class="mt-4 flex gap-2 border-b border-slate-200 pb-4">
-              <button onclick="switchAdminTab('content')" id="tabContentBtn" class="rounded-xl bg-kidBlue text-white px-5 py-2.5 text-sm font-black shadow-sm transition">إدارة المحتوى</button>
-              <button onclick="switchAdminTab('students')" id="tabStudentsBtn" class="rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 px-5 py-2.5 text-sm font-black transition">سجل الطلبة</button>
+            <div class="mt-4 flex flex-wrap gap-2 border-b border-slate-200 pb-4">
+              <button onclick="switchAdminTab('content')" id="tabContentBtn" class="${getAdminTabButtonClass(activeTab === "content")}">إدارة المحتوى</button>
+              <button onclick="switchAdminTab('students')" id="tabStudentsBtn" class="${getAdminTabButtonClass(activeTab === "students")}">سجل الطلبة</button>
+              <button onclick="switchAdminTab('permissions')" id="tabPermissionsBtn" class="${getAdminTabButtonClass(activeTab === "permissions")}">صلاحيات الطلبة</button>
             </div>
           </div>
 
-          <div id="adminContentSection" class="grid gap-6 xl:grid-cols-[0.88fr_1.12fr]">
+          <div id="adminContentSection" class="${activeTab === "content" ? "grid" : "hidden"} gap-6 xl:grid-cols-[0.88fr_1.12fr]">
             <aside class="space-y-6">
               <div class="rounded-[2rem] border border-white/70 bg-white/85 p-5 shadow-float">
                 <h3 class="text-2xl font-black text-kidInk">اختيار الصف</h3>
                 <label class="mt-4 block">
                   <span class="mb-2 block text-sm font-black text-kidInk">الصف الدراسي</span>
-                  <select
-                    id="adminGradeSelect"
-                    class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base font-bold text-kidInk focus:outline-none focus:ring-4 focus:ring-sky-200"
-                  >
+                  <select id="adminGradeSelect" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base font-bold text-kidInk focus:outline-none focus:ring-4 focus:ring-sky-200">
                     ${catalog.grades.map((item) => `<option value="${item.id}" ${item.id === grade.id ? "selected" : ""}>${escapeHtml(item.label)}</option>`).join("")}
                   </select>
                 </label>
@@ -1528,55 +1527,26 @@
               <div class="rounded-[2rem] border border-white/70 bg-white/85 p-5 shadow-float">
                 <div class="flex items-center justify-between gap-3">
                   <h3 class="text-2xl font-black text-kidInk">مواد ${escapeHtml(grade.label)}</h3>
-                  <button
-                    id="addSubjectButton"
-                    type="button"
-                    class="rounded-2xl bg-gradient-to-br from-kidBlue to-kidGreen px-4 py-3 text-sm font-black text-kidInk transition hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-sky-200"
-                  >
+                  <button id="addSubjectButton" type="button" class="rounded-2xl bg-gradient-to-br from-kidBlue to-kidGreen px-4 py-3 text-sm font-black text-kidInk transition hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-sky-200">
                     + إضافة مادة
                   </button>
                 </div>
                 <div class="mt-5 space-y-4">
                   ${grade.subjects.length === 0 ? `
                     <div class="rounded-[1.75rem] bg-slate-50 p-5 text-center">
-                      <div class="text-5xl">📚</div>
+                      <div class="text-5xl">📘</div>
                       <p class="mt-3 text-lg font-black text-kidInk">لا توجد مواد بعد</p>
                     </div>
                   ` : grade.subjects.map((item) => `
-                    <article class="rounded-[1.75rem] border ${item.id === state.adminSubjectId ? "border-kidBlue bg-kidBlue/5" : "border-slate-100 bg-slate-50/90"} p-4 shadow-sm">
+                    <article class="rounded-[1.75rem] border ${item.id === state.adminSubjectId ? "border-kidBlue bg-kidBlue/5 shadow-md" : "border-slate-100 bg-slate-50/90"} p-4 transition-all">
                       <div class="flex items-center justify-between gap-3">
-                        <button
-                          type="button"
-                          data-select-subject="${item.id}"
-                          class="text-right text-lg font-black text-kidInk"
-                        >
+                        <button type="button" data-select-subject="${item.id}" class="text-right text-lg font-black text-kidInk w-full hover:text-kidBlue transition-colors">
                           ${escapeHtml(item.label)}
                         </button>
-                        <button
-                          type="button"
-                          data-delete-subject="${item.id}"
-                          class="rounded-2xl bg-rose-100 px-3 py-2 text-xs font-black text-rose-700 transition hover:bg-rose-200 focus:outline-none focus:ring-4 focus:ring-rose-200"
-                        >
-                          حذف
-                        </button>
+                        <button type="button" data-delete-subject="${item.id}" class="rounded-2xl bg-rose-100 px-3 py-2 text-xs font-black text-rose-700 transition hover:bg-rose-200 focus:outline-none focus:ring-4 focus:ring-rose-200">حذف</button>
                       </div>
                       <label class="mt-3 block">
-                        <span class="mb-2 block text-xs font-black text-slate-500">اسم المادة</span>
-                        <input
-                          type="text"
-                          value="${escapeHtml(item.label)}"
-                          data-subject-label="${item.id}"
-                          class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-kidInk focus:outline-none focus:ring-4 focus:ring-sky-200"
-                        />
-                      </label>
-                      <label class="mt-3 block">
-                        <span class="mb-2 block text-xs font-black text-slate-500">رابط الفيديو</span>
-                        <input
-                          type="text"
-                          value="${escapeHtml(item.videoUrl)}"
-                          data-subject-video="${item.id}"
-                          class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-kidInk focus:outline-none focus:ring-4 focus:ring-sky-200"
-                        />
+                        <input type="text" value="${escapeHtml(item.label)}" data-subject-label="${item.id}" placeholder="تعديل اسم المادة" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-kidInk focus:outline-none focus:border-sky-300" />
                       </label>
                     </article>
                   `).join("")}
@@ -1585,114 +1555,161 @@
             </aside>
 
             <section class="rounded-[2rem] border border-white/70 bg-white/85 p-5 shadow-float sm:p-6">
-              ${
-                !subject
-                  ? `
-                    <div class="rounded-[1.75rem] bg-slate-50 p-6 text-center">
-                      <div class="text-5xl">🛠️</div>
-                      <p class="mt-3 text-xl font-black text-kidInk">اختر مادة من القائمة</p>
-                      <p class="mt-2 text-sm font-bold text-slate-500">ثم ابدأ بإدارة أسئلتها وفيديوها.</p>
-                    </div>
-                  `
-                  : `
-                    <div class="flex flex-wrap items-center justify-between gap-3">
-                      <div>
-                        <h3 class="text-2xl font-black text-kidInk">أسئلة ${escapeHtml(subject.label)}</h3>
-                        <p class="mt-2 text-sm leading-7 text-slate-500">يمكنك إضافة أي عدد من الأسئلة والخيارات لهذه المادة.</p>
-                      </div>
-                      <button
-                        id="addQuestionButton"
-                        type="button"
-                        class="rounded-2xl bg-gradient-to-br from-kidYellow to-kidOrange px-4 py-3 text-sm font-black text-kidInk transition hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-yellow-200"
-                      >
-                        + إضافة سؤال
-                      </button>
+              ${!subject ? `
+                  <div class="rounded-[1.75rem] bg-slate-50 p-6 text-center">
+                    <div class="text-5xl">🛰️</div>
+                    <p class="mt-3 text-xl font-black text-kidInk">اختر مادة من القائمة</p>
+                    <p class="mt-2 text-sm font-bold text-slate-500">لتبدأ بإدارة الدروس الخاصة بها.</p>
+                  </div>
+                ` : `
+                  <div class="flex flex-col gap-4">
+                    <div class="flex items-center justify-between">
+                      <h3 class="text-2xl font-black text-kidInk">دروس مادة ${escapeHtml(subject.label)}</h3>
+                      <button id="addLessonButton" class="rounded-2xl bg-kidBlue px-4 py-2.5 text-sm font-black text-white hover:bg-sky-500 transition shadow-sm">+ إضافة درس جديد</button>
                     </div>
 
-                    <div class="mt-6 space-y-4">
-                      ${subject.questions.length === 0 ? `
-                        <div class="rounded-[1.75rem] bg-slate-50 p-5 text-center">
-                          <div class="text-5xl">❓</div>
-                          <p class="mt-3 text-lg font-black text-kidInk">لا توجد أسئلة بعد</p>
+                    ${subject.lessons.length > 0 ? `
+                      <div class="flex gap-2 overflow-x-auto pb-2 border-b border-slate-200">
+                        ${subject.lessons.map(l => `
+                          <button data-select-lesson="${l.id}" class="whitespace-nowrap px-4 py-2 rounded-xl text-sm font-black transition ${l.id === state.adminLessonId ? 'bg-kidInk text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+                            ${escapeHtml(l.title)}
+                          </button>
+                        `).join("")}
+                      </div>
+                    ` : `<div class="p-4 text-center text-slate-500 text-sm font-bold">لا يوجد دروس، قم بإضافة درس جديد.</div>`}
+
+                    ${lesson ? `
+                      <div class="bg-slate-50/80 rounded-[1.5rem] p-4 border border-slate-100 shadow-inner mt-2">
+                        <div class="flex justify-between items-center mb-4">
+                          <h4 class="text-lg font-black text-sky-800">إعدادات الفيديو</h4>
+                          <button data-delete-lesson="${lesson.id}" class="rounded-xl bg-rose-100 px-3 py-1.5 text-xs font-black text-rose-700 hover:bg-rose-200 transition">حذف الدرس بالكامل</button>
                         </div>
-                      ` : subject.questions.map((question, questionIndex) => renderAdminQuestionCard(question, questionIndex)).join("")}
-                    </div>
-                  `
-              }
-     </section>
+                        <div class="grid gap-4 sm:grid-cols-2">
+                          <label class="block">
+                            <span class="mb-2 block text-xs font-black text-slate-500">عنوان الدرس</span>
+                            <input type="text" value="${escapeHtml(lesson.title)}" data-lesson-title="${lesson.id}" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-kidInk focus:outline-none focus:ring-2 focus:ring-sky-200" />
+                          </label>
+                          <label class="block">
+                            <span class="mb-2 block text-xs font-black text-slate-500">رابط الفيديو (YouTube أو MP4)</span>
+                            <input type="text" value="${escapeHtml(lesson.videoUrl)}" data-lesson-video="${lesson.id}" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-kidInk focus:outline-none focus:ring-2 focus:ring-sky-200" />
+                          </label>
+                        </div>
+                      </div>
+
+                      <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                          <h3 class="text-xl font-black text-kidInk">أسئلة هذا الدرس</h3>
+                        </div>
+                        <button id="addQuestionButton" type="button" class="rounded-2xl bg-gradient-to-br from-kidYellow to-kidOrange px-4 py-2.5 text-sm font-black text-kidInk transition hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-yellow-200">
+                          + إضافة سؤال
+                        </button>
+                      </div>
+
+                      <div class="mt-4 space-y-4">
+                        ${lesson.questions.length === 0 ? `
+                          <div class="rounded-[1.75rem] bg-slate-50 p-5 text-center">
+                            <div class="text-5xl">➕</div>
+                            <p class="mt-3 text-lg font-black text-kidInk">لا توجد أسئلة بعد لهذا الدرس</p>
+                          </div>
+                        ` : lesson.questions.map((question, questionIndex) => renderAdminQuestionCard(question, questionIndex)).join("")}
+                      </div>
+                    ` : ""}
+                  </div>
+              `}
+            </section>
           </div>
 
-          <div id="adminStudentsSection" class="hidden overflow-x-auto rounded-[2rem] border border-white/70 bg-white/90 p-5 shadow-float sm:p-6">
-             <table class="w-full text-right border-collapse min-w-[600px]">
+          <div id="adminStudentsSection" class="${activeTab === "students" ? "overflow-x-auto" : "hidden"} rounded-[2rem] border border-white/70 bg-white/90 p-5 shadow-float sm:p-6">
+            <table class="w-full min-w-[600px] border-collapse text-right">
+              <thead>
+                <tr class="bg-slate-50 text-sm text-slate-500">
+                  <th class="rounded-tr-xl border-b p-4 font-bold">اسم الطالب</th>
+                  <th class="border-b p-4 text-center font-bold">عدد النقاط المكتسبة</th>
+                  <th class="rounded-tl-xl border-b p-4 text-center font-bold">مستوى التفاعل</th>
+                </tr>
+              </thead>
+              <tbody id="adminStudentsTableBody" class="font-bold text-kidInk"></tbody>
+            </table>
+          </div>
+
+          <div id="adminPermissionsSection" class="${activeTab === "permissions" ? "space-y-6" : "hidden"}">
+            <div class="rounded-[2rem] border border-white/70 bg-white/90 p-5 shadow-float sm:p-6">
+              <div>
+                <h3 class="text-2xl font-black text-kidInk">صلاحيات الطلبة</h3>
+                <p class="mt-2 text-sm leading-7 text-slate-500">أضف الاسم والصف المسموح له بالدخول، ثم احفظه في القائمة.</p>
+              </div>
+              <div class="mt-5 grid gap-4 lg:grid-cols-[1fr_220px_auto]">
+                <label class="block">
+                  <span class="mb-2 block text-sm font-black text-kidInk">اسم الطالب</span>
+                  <input
+                    id="whitelistNameInput"
+                    type="text"
+                    class="w-full rounded-[2rem] border border-slate-200 bg-white px-4 py-3 text-base font-bold text-kidInk focus:outline-none focus:ring-4 focus:ring-sky-200"
+                    placeholder="اكتب الاسم كما سيُستخدم"
+                  />
+                </label>
+                <label class="block">
+                  <span class="mb-2 block text-sm font-black text-kidInk">الصف الدراسي</span>
+                  <select id="whitelistGradeSelect" class="w-full rounded-[2rem] border border-slate-200 bg-white px-4 py-3 text-base font-bold text-kidInk focus:outline-none focus:ring-4 focus:ring-sky-200">
+                    <option value="">اختر الصف</option>
+                    ${catalog.grades.map((item) => `<option value="${item.id}">${escapeHtml(item.label)}</option>`).join("")}
+                  </select>
+                </label>
+                <div class="flex items-end">
+                  <button id="addWhitelistButton" type="button" class="w-full rounded-[2rem] bg-gradient-to-br from-kidBlue to-kidGreen px-5 py-3 text-base font-black text-kidInk transition hover:scale-[1.01] focus:outline-none focus:ring-4 focus:ring-sky-200">
+                    إضافة
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="overflow-x-auto rounded-[2rem] border border-white/70 bg-white/90 p-5 shadow-float sm:p-6">
+              <table class="w-full min-w-[560px] border-collapse text-right">
                 <thead>
-                  <tr class="bg-slate-50 text-slate-500 text-sm">
-                    <th class="p-4 border-b font-bold rounded-tr-xl">اسم الطالب</th>
-                    <th class="p-4 border-b font-bold text-center">عدد النقاط المكتسبة</th>
-                    <th class="p-4 border-b font-bold rounded-tl-xl text-center">مستوى التفاعل</th>
+                  <tr class="bg-slate-50 text-sm text-slate-500">
+                    <th class="rounded-tr-xl border-b p-4 font-bold">اسم الطالب</th>
+                    <th class="border-b p-4 text-center font-bold">الصف</th>
+                    <th class="border-b p-4 text-center font-bold text-kidBlue">الكود السري</th>
+                    <th class="rounded-tl-xl border-b p-4 text-center font-bold">إجراء</th>
                   </tr>
                 </thead>
-                <tbody id="adminStudentsTableBody" class="text-kidInk font-bold">
-                  </tbody>
+                <tbody id="adminWhitelistTableBody" class="font-bold text-kidInk"></tbody>
               </table>
+            </div>
           </div>
         </div>
       `;
 
       bindAdminEvents();
-      renderStudentsTable(); // استدعاء دالة رسم الجدول
-    }       
+      if (activeTab === "students") renderStudentsTable();
+      if (activeTab === "permissions") renderWhitelistTable();
+    }
+
     function renderAdminQuestionCard(question, questionIndex) {
       return `
         <article class="rounded-[1.85rem] border border-slate-100 bg-slate-50/90 p-4 shadow-sm">
           <div class="flex flex-wrap items-center justify-between gap-3">
             <div class="rounded-full bg-white px-3 py-1 text-xs font-black text-slate-500 shadow-sm">سؤال ${questionIndex + 1}</div>
-            <button
-              type="button"
-              data-delete-question="${question.id}"
-              class="rounded-2xl bg-rose-100 px-4 py-2 text-sm font-black text-rose-700 transition hover:bg-rose-200 focus:outline-none focus:ring-4 focus:ring-rose-200"
-            >
+            <button type="button" data-delete-question="${question.id}" class="rounded-2xl bg-rose-100 px-4 py-2 text-sm font-black text-rose-700 transition hover:bg-rose-200 focus:outline-none focus:ring-4 focus:ring-rose-200">
               حذف السؤال
             </button>
           </div>
 
           <label class="mt-4 block">
             <span class="mb-2 block text-sm font-black text-kidInk">نص السؤال</span>
-            <textarea
-              rows="2"
-              data-question-text="${question.id}"
-              class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base font-bold text-kidInk focus:outline-none focus:ring-4 focus:ring-sky-200"
-            >${escapeHtml(question.text)}</textarea>
+            <textarea rows="2" data-question-text="${question.id}" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base font-bold text-kidInk focus:outline-none focus:ring-4 focus:ring-sky-200">${escapeHtml(question.text)}</textarea>
           </label>
 
           <div class="mt-5 space-y-3">
             ${question.options.map((option, optionIndex) => `
               <div class="rounded-[1.4rem] bg-white p-3 shadow-sm">
                 <div class="grid gap-3 lg:grid-cols-[1fr_auto_auto] lg:items-center">
-                  <input
-                    type="text"
-                    value="${escapeHtml(option)}"
-                    data-option-text="${question.id}"
-                    data-option-index="${optionIndex}"
-                    class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base font-bold text-kidInk focus:outline-none focus:ring-4 focus:ring-sky-200"
-                  />
+                  <input type="text" value="${escapeHtml(option)}" data-option-text="${question.id}" data-option-index="${optionIndex}" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base font-bold text-kidInk focus:outline-none focus:ring-4 focus:ring-sky-200" />
                   <label class="inline-flex items-center justify-center gap-2 rounded-2xl bg-kidYellow/35 px-4 py-3 text-sm font-black text-kidInk">
-                    <input
-                      type="radio"
-                      name="correct-${question.id}"
-                      data-correct-option="${question.id}"
-                      value="${optionIndex}"
-                      ${optionIndex === question.correctIndex ? "checked" : ""}
-                      class="h-4 w-4 accent-sky-500"
-                    />
+                    <input type="radio" name="correct-${question.id}" data-correct-option="${question.id}" value="${optionIndex}" ${optionIndex === question.correctIndex ? "checked" : ""} class="h-4 w-4 accent-sky-500" />
                     <span>الإجابة الصحيحة</span>
                   </label>
-                  <button
-                    type="button"
-                    data-delete-option="${question.id}"
-                    data-option-index="${optionIndex}"
-                    class="rounded-2xl px-4 py-3 text-sm font-black transition focus:outline-none focus:ring-4 ${question.options.length <= 2 ? "cursor-not-allowed bg-slate-100 text-slate-400 focus:ring-slate-100" : "bg-rose-100 text-rose-700 hover:bg-rose-200 focus:ring-rose-200"}"
-                    ${question.options.length <= 2 ? "disabled" : ""}
-                  >
+                  <button type="button" data-delete-option="${question.id}" data-option-index="${optionIndex}" class="rounded-2xl px-4 py-3 text-sm font-black transition focus:outline-none focus:ring-4 ${question.options.length <= 2 ? "cursor-not-allowed bg-slate-100 text-slate-400 focus:ring-slate-100" : "bg-rose-100 text-rose-700 hover:bg-rose-200 focus:ring-rose-200"}" ${question.options.length <= 2 ? "disabled" : ""}>
                     حذف الخيار
                   </button>
                 </div>
@@ -1700,11 +1717,7 @@
             `).join("")}
           </div>
 
-          <button
-            type="button"
-            data-add-option="${question.id}"
-            class="mt-4 rounded-2xl bg-kidBlue/15 px-4 py-3 text-sm font-black text-kidInk transition hover:bg-kidBlue/25 focus:outline-none focus:ring-4 focus:ring-sky-200"
-          >
+          <button type="button" data-add-option="${question.id}" class="mt-4 rounded-2xl bg-kidBlue/15 px-4 py-3 text-sm font-black text-kidInk transition hover:bg-kidBlue/25 focus:outline-none focus:ring-4 focus:ring-sky-200">
             + إضافة خيار
           </button>
         </article>
@@ -1722,6 +1735,10 @@
         state.adminGradeId = Number(event.target.value);
         const grade = getAdminGrade();
         state.adminSubjectId = grade.subjects[0]?.id || null;
+        
+        const newSubject = getAdminSubject();
+        state.adminLessonId = newSubject?.lessons?.length > 0 ? newSubject.lessons[0].id : null;
+        
         renderAdminDashboard();
       });
 
@@ -1732,11 +1749,11 @@
           key: createId("custom"),
           label: "مادة جديدة",
           icon: subjectIconFromKey("generic", "مادة جديدة"),
-          videoUrl: DEFAULT_VIDEO_URL,
-          questions: [],
+          lessons: []
         };
         grade.subjects.push(newSubject);
         state.adminSubjectId = newSubject.id;
+        state.adminLessonId = null;
         persistCatalog();
         renderAdminDashboard();
       });
@@ -1744,6 +1761,8 @@
       adminView.querySelectorAll("[data-select-subject]").forEach((button) => {
         button.addEventListener("click", () => {
           state.adminSubjectId = button.dataset.selectSubject;
+          const newSubject = getAdminSubject();
+          state.adminLessonId = newSubject?.lessons?.length > 0 ? newSubject.lessons[0].id : null;
           renderAdminDashboard();
         });
       });
@@ -1754,6 +1773,8 @@
           const subjectId = button.dataset.deleteSubject;
           grade.subjects = grade.subjects.filter((item) => item.id !== subjectId);
           state.adminSubjectId = grade.subjects[0]?.id || null;
+          const newSub = getAdminSubject();
+          state.adminLessonId = newSub?.lessons?.length > 0 ? newSub.lessons[0].id : null;
           persistCatalog();
           renderAdminDashboard();
         });
@@ -1762,23 +1783,80 @@
       adminView.querySelectorAll("[data-subject-label]").forEach((input) => {
         input.addEventListener("input", (event) => {
           const subject = getAdminGrade().subjects.find((item) => item.id === event.target.dataset.subjectLabel);
-          subject.label = event.target.value;
-          subject.icon = subjectIconFromKey(subject.key, subject.label);
-          persistCatalog();
+          if(subject) {
+              subject.label = event.target.value;
+              subject.icon = subjectIconFromKey(subject.key, subject.label);
+              persistCatalog();
+              const btn = adminView.querySelector(`button[data-select-subject="${subject.id}"]`);
+              if(btn) btn.textContent = event.target.value;
+          }
         });
       });
 
-      adminView.querySelectorAll("[data-subject-video]").forEach((input) => {
-        input.addEventListener("input", (event) => {
-          const subject = getAdminGrade().subjects.find((item) => item.id === event.target.dataset.subjectVideo);
-          subject.videoUrl = event.target.value;
-          persistCatalog();
-        });
-      });
-
-      adminView.querySelector("#addQuestionButton")?.addEventListener("click", () => {
+      // إضافة درس
+      adminView.querySelector("#addLessonButton")?.addEventListener("click", () => {
         const subject = getAdminSubject();
-        subject.questions.push({
+        if(!subject) return;
+        const newLesson = {
+            id: createId("lesson"),
+            title: `الدرس ${subject.lessons.length + 1}`,
+            videoUrl: DEFAULT_VIDEO_URL,
+            questions: []
+        };
+        subject.lessons.push(newLesson);
+        state.adminLessonId = newLesson.id;
+        persistCatalog();
+        renderAdminDashboard();
+      });
+
+      // اختيار درس
+      adminView.querySelectorAll("[data-select-lesson]").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.adminLessonId = button.dataset.selectLesson;
+          renderAdminDashboard();
+        });
+      });
+
+      // حذف درس
+      adminView.querySelectorAll("[data-delete-lesson]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const subject = getAdminSubject();
+          subject.lessons = subject.lessons.filter(l => l.id !== button.dataset.deleteLesson);
+          state.adminLessonId = subject.lessons[0]?.id || null;
+          persistCatalog();
+          renderAdminDashboard();
+        });
+      });
+
+      // تعديل عنوان الدرس
+      adminView.querySelectorAll("[data-lesson-title]").forEach((input) => {
+        input.addEventListener("input", (event) => {
+          const lesson = getAdminLesson();
+          if(lesson && lesson.id === event.target.dataset.lessonTitle) {
+            lesson.title = event.target.value;
+            persistCatalog();
+            const tabBtn = adminView.querySelector(`button[data-select-lesson="${lesson.id}"]`);
+            if(tabBtn) tabBtn.textContent = event.target.value;
+          }
+        });
+      });
+
+      // تعديل رابط فيديو الدرس
+      adminView.querySelectorAll("[data-lesson-video]").forEach((input) => {
+        input.addEventListener("input", (event) => {
+          const lesson = getAdminLesson();
+          if(lesson && lesson.id === event.target.dataset.lessonVideo) {
+            lesson.videoUrl = event.target.value;
+            persistCatalog();
+          }
+        });
+      });
+
+      // إضافة سؤال للدرس
+      adminView.querySelector("#addQuestionButton")?.addEventListener("click", () => {
+        const lesson = getAdminLesson();
+        if(!lesson) return;
+        lesson.questions.push({
           id: createId("question"),
           text: "سؤال جديد",
           options: ["الخيار الأول", "الخيار الثاني"],
@@ -1790,33 +1868,31 @@
 
       adminView.querySelectorAll("[data-question-text]").forEach((textarea) => {
         textarea.addEventListener("input", (event) => {
-          const question = getAdminSubject().questions.find((item) => item.id === event.target.dataset.questionText);
-          question.text = event.target.value;
-          persistCatalog();
+          const question = getAdminLesson()?.questions.find((item) => item.id === event.target.dataset.questionText);
+          if(question){ question.text = event.target.value; persistCatalog(); }
         });
       });
 
       adminView.querySelectorAll("[data-option-text]").forEach((input) => {
         input.addEventListener("input", (event) => {
-          const question = getAdminSubject().questions.find((item) => item.id === event.target.dataset.optionText);
+          const question = getAdminLesson()?.questions.find((item) => item.id === event.target.dataset.optionText);
           const optionIndex = Number(event.target.dataset.optionIndex);
-          question.options[optionIndex] = event.target.value;
-          persistCatalog();
+          if(question){ question.options[optionIndex] = event.target.value; persistCatalog(); }
         });
       });
 
       adminView.querySelectorAll("[data-correct-option]").forEach((radio) => {
         radio.addEventListener("change", (event) => {
-          const question = getAdminSubject().questions.find((item) => item.id === event.target.dataset.correctOption);
-          question.correctIndex = Number(event.target.value);
-          persistCatalog();
+          const question = getAdminLesson()?.questions.find((item) => item.id === event.target.dataset.correctOption);
+          if(question){ question.correctIndex = Number(event.target.value); persistCatalog(); }
         });
       });
 
       adminView.querySelectorAll("[data-delete-question]").forEach((button) => {
         button.addEventListener("click", () => {
-          const subject = getAdminSubject();
-          subject.questions = subject.questions.filter((item) => item.id !== button.dataset.deleteQuestion);
+          const lesson = getAdminLesson();
+          if(!lesson) return;
+          lesson.questions = lesson.questions.filter((item) => item.id !== button.dataset.deleteQuestion);
           persistCatalog();
           renderAdminDashboard();
         });
@@ -1824,17 +1900,19 @@
 
       adminView.querySelectorAll("[data-add-option]").forEach((button) => {
         button.addEventListener("click", () => {
-          const question = getAdminSubject().questions.find((item) => item.id === button.dataset.addOption);
-          question.options.push(`خيار ${question.options.length + 1}`);
-          persistCatalog();
-          renderAdminDashboard();
+          const question = getAdminLesson()?.questions.find((item) => item.id === button.dataset.addOption);
+          if(question){
+             question.options.push(`خيار ${question.options.length + 1}`);
+             persistCatalog();
+             renderAdminDashboard();
+          }
         });
       });
 
       adminView.querySelectorAll("[data-delete-option]").forEach((button) => {
         button.addEventListener("click", () => {
-          const question = getAdminSubject().questions.find((item) => item.id === button.dataset.deleteOption);
-          if (question.options.length <= 2) return;
+          const question = getAdminLesson()?.questions.find((item) => item.id === button.dataset.deleteOption);
+          if (!question || question.options.length <= 2) return;
           const optionIndex = Number(button.dataset.optionIndex);
           question.options.splice(optionIndex, 1);
           if (question.correctIndex === optionIndex) {
@@ -1846,8 +1924,44 @@
           renderAdminDashboard();
         });
       });
-    }
 
+      adminView.querySelector("#addWhitelistButton")?.addEventListener("click", async () => {
+        const nameInput = adminView.querySelector("#whitelistNameInput");
+        const gradeSelect = adminView.querySelector("#whitelistGradeSelect");
+        const addBtn = adminView.querySelector("#addWhitelistButton");
+        
+        const name = String(nameInput?.value || "").trim();
+        const gradeId = gradeSelect?.value || "";
+        
+        if (!name || !gradeId) {
+          if (!name) triggerShake(nameInput);
+          if (!gradeId) triggerShake(gradeSelect);
+          return;
+        }
+
+        addBtn.textContent = "جاري الإضافة للسحابة...";
+        addBtn.disabled = true;
+
+        const { data: existing } = await supabaseClient.from('students_whitelist').select('id').eq('name', name).eq('grade_id', Number(gradeId));
+        
+        if (!existing || existing.length === 0) {
+          try {
+            const randomSecretCode = Math.floor(1000 + Math.random() * 9000).toString();
+            await supabaseClient.from('students_whitelist').insert([{ name: name, grade_id: Number(gradeId), secret_code: randomSecretCode }]);
+            nameInput.value = "";
+          } catch (error) {
+            console.error("خطأ أثناء الإضافة:", error);
+            alert("حدث خطأ أثناء الاتصال بقاعدة البيانات.");
+          }
+        } else {
+          alert("هذا الطالب مسجل مسبقاً في هذا الصف!");
+        }
+
+        addBtn.textContent = "إضافة";
+        addBtn.disabled = false;
+        renderWhitelistTable();
+      });
+    }
 window.switchAdminTab = function(tabName) {
       const isContent = tabName === 'content';
       document.getElementById('adminContentSection').classList.toggle('hidden', !isContent);
